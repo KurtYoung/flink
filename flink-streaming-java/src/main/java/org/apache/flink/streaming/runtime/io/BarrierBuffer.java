@@ -36,6 +36,7 @@ import org.apache.flink.runtime.io.network.api.EndOfPartitionEvent;
 import org.apache.flink.runtime.io.network.partition.consumer.BufferOrEvent;
 import org.apache.flink.runtime.io.network.partition.consumer.InputGate;
 import org.apache.flink.runtime.jobgraph.tasks.StatefulTask;
+import org.apache.flink.streaming.api.operators.InputSelection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -154,6 +155,11 @@ public class BarrierBuffer implements CheckpointBarrierHandler {
 
 	@Override
 	public BufferOrEvent getNextNonBlocked() throws Exception {
+		return getNextNonBlocked(InputSelection.RANDOM);
+	}
+
+	@Override
+	public BufferOrEvent getNextNonBlocked(InputSelection inputSelection) throws Exception {
 		while (true) {
 			// process buffered BufferOrEvents before grabbing new ones
 			BufferOrEvent next;
@@ -376,9 +382,9 @@ public class BarrierBuffer implements CheckpointBarrierHandler {
 					.setAlignmentDurationNanos(latestAlignmentDurationNanos);
 
 			toNotifyOnCheckpoint.triggerCheckpointOnBarrier(
-				checkpointMetaData,
-				checkpointBarrier.getCheckpointOptions(),
-				checkpointMetrics);
+					checkpointMetaData,
+					checkpointBarrier.getCheckpointOptions(),
+					checkpointMetrics);
 		}
 	}
 

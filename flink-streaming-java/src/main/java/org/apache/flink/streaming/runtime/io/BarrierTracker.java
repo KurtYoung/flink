@@ -29,6 +29,7 @@ import org.apache.flink.runtime.io.network.api.CheckpointBarrier;
 import org.apache.flink.runtime.io.network.partition.consumer.BufferOrEvent;
 import org.apache.flink.runtime.io.network.partition.consumer.InputGate;
 import org.apache.flink.runtime.jobgraph.tasks.StatefulTask;
+import org.apache.flink.streaming.api.operators.InputSelection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,6 +88,11 @@ public class BarrierTracker implements CheckpointBarrierHandler {
 
 	@Override
 	public BufferOrEvent getNextNonBlocked() throws Exception {
+		return getNextNonBlocked(InputSelection.RANDOM);
+	}
+
+	@Override
+	public BufferOrEvent getNextNonBlocked(InputSelection inputSelection) throws Exception {
 		while (true) {
 			BufferOrEvent next = inputGate.getNextBufferOrEvent();
 			if (next == null || next.isBuffer()) {
@@ -257,8 +263,8 @@ public class BarrierTracker implements CheckpointBarrierHandler {
 		if (toNotifyOnCheckpoint != null) {
 			CheckpointMetaData checkpointMetaData = new CheckpointMetaData(checkpointId, timestamp);
 			CheckpointMetrics checkpointMetrics = new CheckpointMetrics()
-				.setBytesBufferedInAlignment(0L)
-				.setAlignmentDurationNanos(0L);
+					.setBytesBufferedInAlignment(0L)
+					.setAlignmentDurationNanos(0L);
 
 			toNotifyOnCheckpoint.triggerCheckpointOnBarrier(checkpointMetaData, checkpointOptions, checkpointMetrics);
 		}
@@ -310,8 +316,8 @@ public class BarrierTracker implements CheckpointBarrierHandler {
 		@Override
 		public String toString() {
 			return isAborted() ?
-				String.format("checkpointID=%d - ABORTED", checkpointId) :
-				String.format("checkpointID=%d, count=%d", checkpointId, barrierCount);
+					String.format("checkpointID=%d - ABORTED", checkpointId) :
+					String.format("checkpointID=%d, count=%d", checkpointId, barrierCount);
 		}
 	}
 }

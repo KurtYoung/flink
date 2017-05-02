@@ -20,6 +20,7 @@ package org.apache.flink.streaming.api.operators.co;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.streaming.api.functions.co.CoFlatMapFunction;
 import org.apache.flink.streaming.api.operators.AbstractUdfStreamOperator;
+import org.apache.flink.streaming.api.operators.InputSelection;
 import org.apache.flink.streaming.api.operators.TimestampedCollector;
 import org.apache.flink.streaming.api.operators.TwoInputStreamOperator;
 import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
@@ -48,16 +49,32 @@ public class CoStreamFlatMap<IN1, IN2, OUT>
 	}
 
 	@Override
-	public void processElement1(StreamRecord<IN1> element) throws Exception {
-		collector.setTimestamp(element);
-		userFunction.flatMap1(element.getValue(), collector);
-
+	public InputSelection firstInputSelection() {
+		return InputSelection.RANDOM;
 	}
 
 	@Override
-	public void processElement2(StreamRecord<IN2> element) throws Exception {
+	public InputSelection processElement1(StreamRecord<IN1> element) throws Exception {
+		collector.setTimestamp(element);
+		userFunction.flatMap1(element.getValue(), collector);
+		return InputSelection.RANDOM;
+	}
+
+	@Override
+	public InputSelection processElement2(StreamRecord<IN2> element) throws Exception {
 		collector.setTimestamp(element);
 		userFunction.flatMap2(element.getValue(), collector);
+		return InputSelection.RANDOM;
+	}
+
+	@Override
+	public InputSelection endInput1() throws Exception {
+		return InputSelection.RANDOM;
+	}
+
+	@Override
+	public InputSelection endInput2() throws Exception {
+		return InputSelection.RANDOM;
 	}
 
 	protected TimestampedCollector<OUT> getCollector() {

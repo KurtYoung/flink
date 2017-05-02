@@ -48,4 +48,8 @@ public class StreamSink<IN> extends AbstractUdfStreamOperator<Object, SinkFuncti
 
 		// sinks don't forward latency markers
 	}
+
+	@Override
+	public void endInput() throws Exception {
+	}
 }

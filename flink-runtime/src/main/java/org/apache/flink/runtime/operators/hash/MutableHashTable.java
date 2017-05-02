@@ -401,7 +401,7 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource {
 			throw new IllegalArgumentException("Too few memory segments provided. Hash Join needs at least " + 
 				MIN_NUM_MEMORY_SEGMENTS + " memory segments.");
 		}
-		
+
 		// assign the members
 		this.buildSideSerializer = buildSideSerializer;
 		this.probeSideSerializer = probeSideSerializer;
@@ -438,6 +438,9 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource {
 		
 		// because we allow to open and close multiple times, the state is initially closed
 		this.closed.set(true);
+
+		LOG.info(String.format("Initialize hash table with %d memory segments, each size [%d], total memory %d MB",
+				totalNumBuffers, segmentSize, (long)totalNumBuffers * segmentSize / 1024 / 1024));
 	}
 	
 	
@@ -593,6 +596,9 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource {
 
 		// there are pending partitions
 		final HashPartition<BT, PT> p = this.partitionsPending.get(0);
+		if (LOG.isDebugEnabled()) {
+			LOG.debug(String.format("Begin to process spilled partition [%d]", p.getPartitionNumber()));
+		}
 
 		if (p.probeSideRecordCounter == 0) {
 			// unprobed spilled partitions are only re-processed for a build-side outer join;
@@ -793,6 +799,9 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource {
 		// set up the table structure. the write behind buffers are taken away, as are one buffer per partition
 		final int numBuckets = getInitialTableSize(this.availableMemory.size(), this.segmentSize, 
 			partitionFanOut, this.avgRecordLen);
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Building initial table");
+		}
 		initTable(numBuckets, (byte) partitionFanOut);
 		
 		final TypeComparator<BT> buildTypeComparator = this.buildSideComparator;
@@ -864,6 +873,9 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource {
 		final long totalBuffersNeeded = 2 * (numBuckets / (this.bucketsPerSegmentMask + 1)) + p.getBuildSideBlockCount() + 2;
 		
 		if (totalBuffersNeeded < totalBuffersAvailable) {
+			if (LOG.isDebugEnabled()) {
+				LOG.debug(String.format("Build in memory hash table from spilled partition [%d]", p.getPartitionNumber()));
+			}
 			// we are guaranteed to stay in memory
 			ensureNumBuffersReturned(p.getBuildSideBlockCount());
 			
@@ -916,7 +928,11 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource {
 			final int partitionFanOut = Math.min(10 * splits /* being conservative */, MAX_NUM_PARTITIONS);
 			
 			createPartitions(partitionFanOut, nextRecursionLevel);
-			
+
+			if (LOG.isDebugEnabled()) {
+				LOG.debug(String.format("Build hybrid hash table from spilled partition [%d] with recursion level [%d]",
+						p.getPartitionNumber(), nextRecursionLevel));
+			}
 			// set up the table structure. the write behind buffers are taken away, as are one buffer per partition
 			initTable(bucketCount, (byte) partitionFanOut);
 			
@@ -1149,6 +1165,10 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource {
 	}
 	
 	protected void initTable(int numBuckets, byte numPartitions) {
+		if (LOG.isDebugEnabled()) {
+			LOG.debug(String.format("Init table with %d buckets and %d partitions", numBuckets, numPartitions));
+		}
+
 		final int bucketsPerSegment = this.bucketsPerSegmentMask + 1;
 		final int numSegs = (numBuckets >>> this.bucketsPerSegmentBits) + ( (numBuckets & this.bucketsPerSegmentMask) == 0 ? 0 : 1);
 		final MemorySegment[] table = new MemorySegment[numSegs];
@@ -1231,6 +1251,11 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource {
 		int numBuffersFreed = p.spillPartition(this.availableMemory, this.ioManager, 
 										this.currentEnumerator.next(), this.writeBehindBuffers);
 		this.writeBehindBuffersAvailable += numBuffersFreed;
+		if (LOG.isDebugEnabled()) {
+			LOG.debug(String.format("Ran out memory, choosing partition [%d] to spill, %d memory segments being freed",
+					largestPartNum, numBuffersFreed));
+		}
+
 		// grab as many buffers as are available directly
 		MemorySegment currBuff;
 		while (this.writeBehindBuffersAvailable > 0 && (currBuff = this.writeBehindBuffers.poll()) != null) {

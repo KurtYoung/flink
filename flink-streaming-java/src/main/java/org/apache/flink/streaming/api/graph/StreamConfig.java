@@ -25,9 +25,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.flink.annotation.Internal;
+import org.apache.flink.api.common.typeutils.TypeComparator;
+import org.apache.flink.api.common.typeutils.TypeComparatorFactory;
+import org.apache.flink.api.common.typeutils.TypePairComparator;
+import org.apache.flink.api.common.typeutils.TypePairComparatorFactory;
 import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.DelegatingConfiguration;
 import org.apache.flink.runtime.operators.util.CorruptConfigurationException;
 import org.apache.flink.runtime.state.AbstractStateBackend;
 import org.apache.flink.runtime.util.ClassLoaderUtil;
@@ -67,6 +72,11 @@ public class StreamConfig implements Serializable {
 	private static final String BUFFER_TIMEOUT = "bufferTimeout";
 	private static final String TYPE_SERIALIZER_IN_1 = "typeSerializer_in_1";
 	private static final String TYPE_SERIALIZER_IN_2 = "typeSerializer_in_2";
+	private static final String COMPARATOR_IN_1 = "comp_in_1";
+	private static final String COMPARATOR_IN_2 = "comp_in_1";
+	private static final String COMPARATOR_PARAMETERS_1 = "comp_params_1";
+	private static final String COMPARATOR_PARAMETERS_2 = "comp_params_2";
+	private static final String PAIR_COMPARATOR = "pair_comparator";
 	private static final String TYPE_SERIALIZER_OUT_1 = "typeSerializer_out";
 	private static final String TYPE_SERIALIZER_SIDEOUT_PREFIX = "typeSerializer_sideout_";
 	private static final String ITERATON_WAIT = "iterationWait";
@@ -166,6 +176,98 @@ public class StreamConfig implements Serializable {
 		}
 	}
 
+	public void setComparatorIn1(TypeComparatorFactory<?> factory) {
+		setTypeComparatorFactory(factory, COMPARATOR_IN_1, COMPARATOR_PARAMETERS_1);
+	}
+
+	public void setComparatorIn2(TypeComparatorFactory<?> factory) {
+		setTypeComparatorFactory(factory, COMPARATOR_IN_2, COMPARATOR_PARAMETERS_2);
+	}
+
+	private void setTypeComparatorFactory(TypeComparatorFactory<?> factory,
+			String classNameKey, String parametersPrefix) {
+		// sanity check the factory type
+		InstantiationUtil.checkForInstantiation(factory.getClass());
+
+		// store the type
+		this.config.setString(classNameKey, factory.getClass().getName());
+		// store the parameters
+		final DelegatingConfiguration parameters = new DelegatingConfiguration(this.config, parametersPrefix);
+		factory.writeParametersToConfig(parameters);
+	}
+
+	public <T> TypeComparatorFactory<T> getComparatorIn1(ClassLoader cl) {
+		return getTypeComparatorFactory(COMPARATOR_IN_1, COMPARATOR_PARAMETERS_1, cl);
+	}
+
+	public <T> TypeComparatorFactory<T> getComparatorIn2(ClassLoader cl) {
+		return getTypeComparatorFactory(COMPARATOR_IN_2, COMPARATOR_PARAMETERS_2, cl);
+	}
+
+	private <T> TypeComparatorFactory<T> getTypeComparatorFactory(String classNameKey, String parametersPrefix, ClassLoader cl) {
+		// check the class name
+		final String className = this.config.getString(classNameKey, null);
+		if (className == null) {
+			return null;
+		}
+
+		// instantiate the class
+		@SuppressWarnings("unchecked")
+		final Class<TypeComparatorFactory<T>> superClass = (Class<TypeComparatorFactory<T>>) (Class<?>) TypeComparatorFactory.class;
+		final TypeComparatorFactory<T> factory;
+		try {
+			Class<? extends TypeComparatorFactory<T>> clazz = Class.forName(className, true, cl).asSubclass(superClass);
+			factory = InstantiationUtil.instantiate(clazz, superClass);
+		}
+		catch (ClassNotFoundException cnfex) {
+			throw new RuntimeException("The class '" + className + "', noted in the configuration as " +
+					"comparator factory, could not be found. It is not part of the user code's class loader resources.");
+		}
+		catch (ClassCastException ccex) {
+			throw new CorruptConfigurationException("The class noted in the configuration as the comparator factory " +
+					"is no subclass of TypeComparatorFactory.");
+		}
+
+		// parameterize the comparator factory
+		final Configuration parameters = new DelegatingConfiguration(this.config, parametersPrefix);
+		try {
+			factory.readParametersFromConfig(parameters, cl);
+		} catch (ClassNotFoundException cnfex) {
+			throw new RuntimeException("The type serializer factory could not load its parameters from the " +
+					"configuration due to missing classes.", cnfex);
+		}
+
+		return factory;
+	}
+
+	public void setPairComparator(TypePairComparatorFactory<?, ?> factory) {
+		final Class<?> clazz = factory.getClass();
+		InstantiationUtil.checkForInstantiation(clazz);
+		this.config.setString(PAIR_COMPARATOR, clazz.getName());
+	}
+
+	public <T1, T2> TypePairComparatorFactory<T1, T2> getPairComparatorFactory(ClassLoader cl) {
+		final String className = this.config.getString(PAIR_COMPARATOR, null);
+		if (className == null) {
+			return null;
+		}
+
+		@SuppressWarnings("unchecked")
+		final Class<TypePairComparatorFactory<T1, T2>> superClass = (Class<TypePairComparatorFactory<T1, T2>>) (Class<?>) TypePairComparatorFactory.class;
+		try {
+			final Class<? extends TypePairComparatorFactory<T1, T2>> clazz = Class.forName(className, true, cl).asSubclass(superClass);
+			return InstantiationUtil.instantiate(clazz, superClass);
+		}
+		catch (ClassNotFoundException cnfex) {
+			throw new RuntimeException("The class '" + className + "', noted in the configuration as " +
+					"pair comparator factory, could not be found. It is not part of the user code's class loader resources.");
+		}
+		catch (ClassCastException ccex) {
+			throw new CorruptConfigurationException("The class noted in the configuration as the pair comparator factory " +
+					"is no subclass of TypePairComparatorFactory.");
+		}
+	}
+
 	public <T> TypeSerializer<T> getTypeSerializerOut(ClassLoader cl) {
 		try {
 			return InstantiationUtil.readObjectFromConfig(this.config, TYPE_SERIALIZER_OUT_1, cl);
@@ -188,6 +290,22 @@ public class StreamConfig implements Serializable {
 			InstantiationUtil.writeObjectToConfig(typeWrapper, this.config, key);
 		} catch (IOException e) {
 			throw new StreamTaskException("Could not serialize type serializer.", e);
+		}
+	}
+
+	private void setComparator(String key, TypeComparator<?> typeComparator) {
+		try {
+			InstantiationUtil.writeObjectToConfig(typeComparator, this.config, key);
+		} catch (IOException e) {
+			throw new StreamTaskException("Could not serialize type comparator.", e);
+		}
+	}
+
+	private void setPairComparator(String key, TypePairComparator<?, ?> typePairComparator) {
+		try {
+			InstantiationUtil.writeObjectToConfig(typePairComparator, this.config, key);
+		} catch (IOException e) {
+			throw new StreamTaskException("Could not serialize type comparator.", e);
 		}
 	}
 

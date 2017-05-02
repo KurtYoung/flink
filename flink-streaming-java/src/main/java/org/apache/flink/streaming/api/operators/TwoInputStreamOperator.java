@@ -35,17 +35,19 @@ import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
 @PublicEvolving
 public interface TwoInputStreamOperator<IN1, IN2, OUT> extends StreamOperator<OUT> {
 
+	InputSelection firstInputSelection();
+
 	/**
 	 * Processes one element that arrived on the first input of this two-input operator.
 	 * This method is guaranteed to not be called concurrently with other methods of the operator.
 	 */
-	void processElement1(StreamRecord<IN1> element) throws Exception;
+	InputSelection processElement1(StreamRecord<IN1> element) throws Exception;
 
 	/**
 	 * Processes one element that arrived on the second input of this two-input operator.
 	 * This method is guaranteed to not be called concurrently with other methods of the operator.
 	 */
-	void processElement2(StreamRecord<IN2> element) throws Exception;
+	InputSelection processElement2(StreamRecord<IN2> element) throws Exception;
 
 	/**
 	 * Processes a {@link Watermark} that arrived on the first input of this two-input operator.
@@ -79,4 +81,7 @@ public interface TwoInputStreamOperator<IN1, IN2, OUT> extends StreamOperator<OU
 	 */
 	void processLatencyMarker2(LatencyMarker latencyMarker) throws Exception;
 
+	InputSelection endInput1() throws Exception;
+
+	InputSelection endInput2() throws Exception;
 }

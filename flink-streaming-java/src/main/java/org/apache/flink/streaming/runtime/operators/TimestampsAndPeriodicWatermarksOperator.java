@@ -98,6 +98,10 @@ public class TimestampsAndPeriodicWatermarksOperator<T>
 	}
 
 	@Override
+	public void endInput() throws Exception {
+	}
+
+	@Override
 	public void close() throws Exception {
 		super.close();
 

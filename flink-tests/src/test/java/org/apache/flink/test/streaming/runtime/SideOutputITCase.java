@@ -133,6 +133,11 @@ public class SideOutputITCase extends StreamingMultipleProgramsTestBase implemen
 				super.processWatermark(mark);
 				output.collect(new StreamRecord<>("WM:" + mark.getTimestamp()));
 			}
+
+			@Override
+			public void endInput() throws Exception {
+			}
+
 		}
 
 		passThroughtStream

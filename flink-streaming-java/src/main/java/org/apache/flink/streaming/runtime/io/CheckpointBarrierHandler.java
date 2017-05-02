@@ -22,6 +22,7 @@ import java.io.IOException;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.runtime.io.network.partition.consumer.BufferOrEvent;
 import org.apache.flink.runtime.jobgraph.tasks.StatefulTask;
+import org.apache.flink.streaming.api.operators.InputSelection;
 
 /**
  * The CheckpointBarrierHandler reacts to checkpoint barrier arriving from the input channels.
@@ -45,6 +46,8 @@ public interface CheckpointBarrierHandler {
 	 * @throws Exception Thrown in case that a checkpoint fails that is started as the result of receiving
 	 *                   the last checkpoint barrier
 	 */
+	BufferOrEvent getNextNonBlocked(InputSelection inputSelection) throws Exception;
+
 	BufferOrEvent getNextNonBlocked() throws Exception;
 
 	/**

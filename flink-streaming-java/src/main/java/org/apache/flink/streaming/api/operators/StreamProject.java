@@ -60,4 +60,8 @@ public class StreamProject<IN, OUT extends Tuple>
 		super.open();
 		outTuple = outSerializer.createInstance();
 	}
+
+	@Override
+	public void endInput() throws Exception {
+	}
 }

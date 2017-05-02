@@ -47,6 +47,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
@@ -156,7 +157,7 @@ public class SingleInputGate implements InputGate {
 	private volatile boolean isReleased;
 
 	/** Registered listener to forward buffer notifications to. */
-	private volatile InputGateListener inputGateListener;
+	private volatile List<InputGateListener> inputGateListeners;
 
 	private final List<TaskEvent> pendingEvents = new ArrayList<>();
 
@@ -191,6 +192,7 @@ public class SingleInputGate implements InputGate {
 		this.channelsWithEndOfPartitionEvents = new BitSet(numberOfInputChannels);
 
 		this.taskActions = checkNotNull(taskActions);
+		this.inputGateListeners = new LinkedList<>();
 	}
 
 	// ------------------------------------------------------------------------
@@ -527,11 +529,7 @@ public class SingleInputGate implements InputGate {
 
 	@Override
 	public void registerListener(InputGateListener inputGateListener) {
-		if (this.inputGateListener == null) {
-			this.inputGateListener = inputGateListener;
-		} else {
-			throw new IllegalStateException("Multiple listeners");
-		}
+		inputGateListeners.add(inputGateListener);
 	}
 
 	void notifyChannelNonEmpty(InputChannel channel) {
@@ -556,9 +554,10 @@ public class SingleInputGate implements InputGate {
 		}
 
 		if (availableChannels == 0) {
-			InputGateListener listener = inputGateListener;
-			if (listener != null) {
-				listener.notifyInputGateNonEmpty(this);
+			for (InputGateListener listener : inputGateListeners) {
+				if (listener != null) {
+					listener.notifyInputGateNonEmpty(this);
+				}
 			}
 		}
 	}

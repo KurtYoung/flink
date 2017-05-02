@@ -49,4 +49,8 @@ public class StreamFlatMap<IN, OUT>
 		collector.setTimestamp(element);
 		userFunction.flatMap(element.getValue(), collector);
 	}
+
+	@Override
+	public void endInput() throws Exception {
+	}
 }

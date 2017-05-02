@@ -68,4 +68,8 @@ public class StreamGroupedReduce<IN> extends AbstractUdfStreamOperator<IN, Reduc
 			output.collect(element.replace(value));
 		}
 	}
+
+	@Override
+	public void endInput() throws Exception {
+	}
 }

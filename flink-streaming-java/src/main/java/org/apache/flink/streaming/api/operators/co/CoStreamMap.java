@@ -20,6 +20,7 @@ package org.apache.flink.streaming.api.operators.co;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.streaming.api.functions.co.CoMapFunction;
 import org.apache.flink.streaming.api.operators.AbstractUdfStreamOperator;
+import org.apache.flink.streaming.api.operators.InputSelection;
 import org.apache.flink.streaming.api.operators.TwoInputStreamOperator;
 import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
 
@@ -39,12 +40,29 @@ public class CoStreamMap<IN1, IN2, OUT>
 	}
 
 	@Override
-	public void processElement1(StreamRecord<IN1> element) throws Exception {
-		output.collect(element.replace(userFunction.map1(element.getValue())));
+	public InputSelection firstInputSelection() {
+		return InputSelection.RANDOM;
 	}
 
 	@Override
-	public void processElement2(StreamRecord<IN2> element) throws Exception {
+	public InputSelection processElement1(StreamRecord<IN1> element) throws Exception {
+		output.collect(element.replace(userFunction.map1(element.getValue())));
+		return InputSelection.RANDOM;
+	}
+
+	@Override
+	public InputSelection processElement2(StreamRecord<IN2> element) throws Exception {
 		output.collect(element.replace(userFunction.map2(element.getValue())));
+		return InputSelection.RANDOM;
+	}
+
+	@Override
+	public InputSelection endInput1() throws Exception {
+		return InputSelection.RANDOM;
+	}
+
+	@Override
+	public InputSelection endInput2() throws Exception {
+		return InputSelection.RANDOM;
 	}
 }

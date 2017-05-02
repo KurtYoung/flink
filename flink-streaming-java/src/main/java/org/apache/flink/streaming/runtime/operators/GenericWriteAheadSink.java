@@ -271,6 +271,10 @@ public abstract class GenericWriteAheadSink<IN> extends AbstractStreamOperator<I
 		serializer.serialize(value, new DataOutputViewStreamWrapper(out));
 	}
 
+	@Override
+	public void endInput() throws Exception {
+	}
+
 	private static final class PendingCheckpoint implements Comparable<PendingCheckpoint>, Serializable {
 
 		private static final long serialVersionUID = -3571036395734603443L;

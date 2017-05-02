@@ -119,7 +119,10 @@ public enum DriverStrategy {
 	UNION(null, null, PIPELINED, PIPELINED, 0),
 	// explicit binary union between a streamed and a cached input
 	UNION_WITH_CACHED(UnionWithTempOperator.class, null, FULL_DAM, PIPELINED, 0),
-	
+
+	DUMMY_TWO_MAP(DummyTwoInputDriver.class, null, PIPELINED, PIPELINED, 0),
+	DUMMY_TWO_STREAM_MAP(DummyTwoInputStreamOperatorDriver.class, null, PIPELINED, PIPELINED, 0),
+
 	// some enumeration constants to mark sources and sinks
 	SOURCE(null, null, PIPELINED, 0),
 	SINK(null, null, PIPELINED, 0);

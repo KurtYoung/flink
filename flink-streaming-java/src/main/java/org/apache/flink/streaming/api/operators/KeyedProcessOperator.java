@@ -95,6 +95,10 @@ public class KeyedProcessOperator<K, IN, OUT>
 		context.element = null;
 	}
 
+	@Override
+	public void endInput() throws Exception {
+	}
+
 	private class ContextImpl extends ProcessFunction<IN, OUT>.Context {
 
 		private final TimerService timerService;

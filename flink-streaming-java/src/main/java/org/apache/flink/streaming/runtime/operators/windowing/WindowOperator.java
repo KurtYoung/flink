@@ -324,6 +324,10 @@ public class WindowOperator<K, IN, ACC, OUT, W extends Window>
 	}
 
 	@Override
+	public void endInput() throws Exception {
+	}
+
+	@Override
 	public void close() throws Exception {
 		super.close();
 		timestampedCollector = null;

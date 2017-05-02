@@ -107,7 +107,7 @@ public abstract class AbstractStreamOperator<OUT>
 	// ---------------- runtime fields ------------------
 
 	/** The task that contains this operator (and other operators in the same chain). */
-	private transient StreamTask<?, ?> container;
+	protected transient StreamTask<?, ?> container;
 
 	protected transient StreamConfig config;
 

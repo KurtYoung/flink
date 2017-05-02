@@ -23,6 +23,8 @@ import org.apache.flink.api.common.io.DelimitedInputFormat;
 import org.apache.flink.api.common.io.FileOutputFormat;
 import org.apache.flink.api.common.operators.util.UserCodeClassWrapper;
 import org.apache.flink.api.common.operators.util.UserCodeObjectWrapper;
+import org.apache.flink.runtime.io.network.api.writer.ResultPartitionWriter;
+import org.apache.flink.runtime.io.network.partition.consumer.InputGate;
 import org.apache.flink.runtime.testutils.recordutils.RecordSerializerFactory;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.fs.FileSystem.WriteMode;
@@ -71,6 +73,20 @@ public abstract class TaskTestBase extends TestLogger {
 		}
 
 		return reader;
+	}
+
+	public void addInputGate(InputGate inputGate, int groupId) {
+		mockEnv.addInput(inputGate);
+		TaskConfig conf = new TaskConfig(this.mockEnv.getTaskConfiguration());
+		conf.addInputToGroup(groupId);
+		conf.setInputSerializer(RecordSerializerFactory.get(), groupId);
+	}
+
+	public void addOutputWriter(ResultPartitionWriter writer) {
+		this.mockEnv.addOutputWriter(writer);
+		TaskConfig conf = new TaskConfig(this.mockEnv.getTaskConfiguration());
+		conf.addOutputShipStrategy(ShipStrategyType.FORWARD);
+		conf.setOutputSerializer(RecordSerializerFactory.get());
 	}
 
 	public void addOutput(List<Record> output) {

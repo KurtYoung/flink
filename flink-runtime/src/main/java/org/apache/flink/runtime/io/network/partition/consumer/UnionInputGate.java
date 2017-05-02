@@ -157,6 +157,10 @@ public class UnionInputGate implements InputGate, InputGateListener {
 
 		final BufferOrEvent bufferOrEvent = inputGate.getNextBufferOrEvent();
 
+		if (bufferOrEvent == null) {
+			return null;
+		}
+
 		if (bufferOrEvent.moreAvailable()) {
 			// this buffer or event was now removed from the non-empty gates queue
 			// we re-add it in case it has more data, because in that case no "non-empty" notification

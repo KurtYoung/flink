@@ -38,11 +38,13 @@ import org.apache.flink.runtime.checkpoint.CheckpointOptions;
 import org.apache.flink.runtime.checkpoint.SubtaskState;
 import org.apache.flink.runtime.execution.CancelTaskException;
 import org.apache.flink.runtime.execution.Environment;
+import org.apache.flink.runtime.io.disk.iomanager.IOManager;
 import org.apache.flink.runtime.io.network.api.CancelCheckpointMarker;
 import org.apache.flink.runtime.io.network.api.serialization.EventSerializer;
 import org.apache.flink.runtime.io.network.api.writer.ResultPartitionWriter;
 import org.apache.flink.runtime.jobgraph.tasks.AbstractInvokable;
 import org.apache.flink.runtime.jobgraph.tasks.StatefulTask;
+import org.apache.flink.runtime.memory.MemoryManager;
 import org.apache.flink.runtime.state.AbstractKeyedStateBackend;
 import org.apache.flink.runtime.state.AbstractStateBackend;
 import org.apache.flink.runtime.state.ChainedStateHandle;
@@ -498,6 +500,14 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
 
 	RecordWriterOutput<?>[] getStreamOutputs() {
 		return operatorChain.getStreamOutputs();
+	}
+
+	public MemoryManager getMemoryManager() {
+		return getEnvironment().getMemoryManager();
+	}
+
+	public IOManager getIOManager() {
+		return getEnvironment().getIOManager();
 	}
 
 	// ------------------------------------------------------------------------
@@ -1186,5 +1196,9 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
 			DISCARDED,
 			COMPLETED
 		}
+	}
+
+	public OP getHeadOperator() {
+		return headOperator;
 	}
 }

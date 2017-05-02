@@ -110,4 +110,7 @@ public class StreamGroupedFold<IN, OUT, KEY>
 		serializedInitialValue = baos.toByteArray();
 	}
 
+	@Override
+	public void endInput() throws Exception {
+	}
 }

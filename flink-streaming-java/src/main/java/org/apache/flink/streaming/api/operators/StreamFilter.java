@@ -40,4 +40,8 @@ public class StreamFilter<IN> extends AbstractUdfStreamOperator<IN, FilterFuncti
 			output.collect(element);
 		}
 	}
+
+	@Override
+	public void endInput() throws Exception {
+	}
 }

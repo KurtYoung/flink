@@ -28,6 +28,7 @@ import org.apache.flink.streaming.api.TimeDomain;
 import org.apache.flink.streaming.api.TimerService;
 import org.apache.flink.streaming.api.functions.co.CoProcessFunction;
 import org.apache.flink.streaming.api.operators.AbstractUdfStreamOperator;
+import org.apache.flink.streaming.api.operators.InputSelection;
 import org.apache.flink.streaming.api.operators.InternalTimer;
 import org.apache.flink.streaming.api.operators.InternalTimerService;
 import org.apache.flink.streaming.api.operators.TimestampedCollector;
@@ -71,19 +72,36 @@ public class KeyedCoProcessOperator<K, IN1, IN2, OUT>
 	}
 
 	@Override
-	public void processElement1(StreamRecord<IN1> element) throws Exception {
+	public InputSelection firstInputSelection() {
+		return InputSelection.RANDOM;
+	}
+
+	@Override
+	public InputSelection processElement1(StreamRecord<IN1> element) throws Exception {
 		collector.setTimestamp(element);
 		context.element = element;
 		userFunction.processElement1(element.getValue(), context, collector);
 		context.element = null;
+		return InputSelection.RANDOM;
 	}
 
 	@Override
-	public void processElement2(StreamRecord<IN2> element) throws Exception {
+	public InputSelection processElement2(StreamRecord<IN2> element) throws Exception {
 		collector.setTimestamp(element);
 		context.element = element;
 		userFunction.processElement2(element.getValue(), context, collector);
 		context.element = null;
+		return InputSelection.RANDOM;
+	}
+
+	@Override
+	public InputSelection endInput1() throws Exception {
+		return InputSelection.RANDOM;
+	}
+
+	@Override
+	public InputSelection endInput2() throws Exception {
+		return InputSelection.RANDOM;
 	}
 
 	@Override

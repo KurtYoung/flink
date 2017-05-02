@@ -767,6 +767,10 @@ public class OneInputStreamTaskTest extends TestLogger {
 		}
 
 		@Override
+		public void endInput() throws Exception {
+		}
+
+		@Override
 		public void snapshotState(FSDataOutputStream out, long checkpointId, long timestamp) throws Exception {
 			if (random == null) {
 				random = new Random(seed);
@@ -918,6 +922,10 @@ public class OneInputStreamTaskTest extends TestLogger {
 			} else {
 				handleWatermark(mark);
 			}
+		}
+
+		@Override
+		public void endInput() throws Exception {
 		}
 
 		protected void handleElement(StreamRecord<String> element) {

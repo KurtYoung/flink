@@ -478,6 +478,10 @@ public class StatefulJobSavepointFrom11MigrationITCase extends SavepointMigratio
 			output.emitWatermark(mark);
 		}
 
+		@Override
+		public void endInput() throws Exception {
+		}
+
 		// Flink 1.1
 //		@Override
 //		public StreamTaskState snapshotOperatorState(
@@ -532,6 +536,10 @@ public class StatefulJobSavepointFrom11MigrationITCase extends SavepointMigratio
 			DataInputViewStreamWrapper streamWrapper = new DataInputViewStreamWrapper(in);
 
 			restoredState = streamWrapper.readUTF();
+		}
+
+		@Override
+		public void endInput() throws Exception {
 		}
 	}
 

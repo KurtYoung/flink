@@ -469,6 +469,10 @@ public class RocksDBAsyncSnapshotTest {
 		}
 
 		@Override
+		public void endInput() throws Exception {
+		}
+
+		@Override
 		public void snapshotState(
 				FSDataOutputStream out, long checkpointId, long timestamp) throws Exception {
 			// do nothing so that we don't block
