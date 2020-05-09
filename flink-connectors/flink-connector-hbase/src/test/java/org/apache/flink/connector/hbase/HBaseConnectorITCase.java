@@ -35,6 +35,7 @@ import org.apache.flink.table.api.Table;
 import org.apache.flink.table.api.TableConfig;
 import org.apache.flink.table.api.TableEnvironment;
 import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.api.internal.BatchTableEnvImpl;
 import org.apache.flink.table.api.internal.TableImpl;
 import org.apache.flink.table.api.java.BatchTableEnvironment;
 import org.apache.flink.table.api.java.StreamTableEnvironment;
@@ -49,6 +50,7 @@ import org.apache.flink.table.planner.utils.JavaScalaConversionUtil;
 import org.apache.flink.table.runtime.utils.StreamITCase;
 import org.apache.flink.table.sinks.TableSink;
 import org.apache.flink.table.sources.TableSource;
+import org.apache.flink.table.utils.TableEnvUtils;
 import org.apache.flink.test.util.TestBaseUtils;
 import org.apache.flink.types.Row;
 
@@ -100,7 +102,8 @@ public class HBaseConnectorITCase extends HBaseTestBase {
 		hbaseTable.addColumn(FAMILY3, F3COL1, Double.class);
 		hbaseTable.addColumn(FAMILY3, F3COL2, Boolean.class);
 		hbaseTable.addColumn(FAMILY3, F3COL3, String.class);
-		tEnv.registerTableSource("hTable", hbaseTable);
+		boolean isBatch = tEnv instanceof BatchTableEnvImpl;
+		TableEnvUtils.registerTableSource(tEnv, "hTable", hbaseTable, isBatch);
 
 		Table table = tEnv.sqlQuery("SELECT " +
 			"  h.family1.col1, " +
@@ -135,7 +138,8 @@ public class HBaseConnectorITCase extends HBaseTestBase {
 		hbaseTable.addColumn(FAMILY3, F3COL1, Double.class);
 		hbaseTable.addColumn(FAMILY3, F3COL2, Boolean.class);
 		hbaseTable.addColumn(FAMILY3, F3COL3, String.class);
-		tEnv.registerTableSource("hTable", hbaseTable);
+		boolean isBatch = tEnv instanceof BatchTableEnvImpl;
+		TableEnvUtils.registerTableSource(tEnv, "hTable", hbaseTable, isBatch);
 
 		Table table = tEnv.sqlQuery("SELECT " +
 			"  h.family1.col1, " +
@@ -169,7 +173,8 @@ public class HBaseConnectorITCase extends HBaseTestBase {
 		hbaseTable.addColumn(FAMILY2, F2COL2, Long.class);
 		hbaseTable.addColumn(FAMILY3, F3COL2, Boolean.class);
 		hbaseTable.addColumn(FAMILY3, F3COL3, String.class);
-		tEnv.registerTableSource("hTable", hbaseTable);
+		boolean isBatch = tEnv instanceof BatchTableEnvImpl;
+		TableEnvUtils.registerTableSource(tEnv, "hTable", hbaseTable, isBatch);
 
 		Table table = tEnv.sqlQuery("SELECT * FROM hTable AS h");
 
@@ -194,7 +199,8 @@ public class HBaseConnectorITCase extends HBaseTestBase {
 		HBaseTableSource hbaseTable = new HBaseTableSource(getConf(), TEST_TABLE_1);
 		hbaseTable.addColumn(FAMILY2, F2COL1, byte[].class);
 		hbaseTable.addColumn(FAMILY2, F2COL2, byte[].class);
-		tEnv.registerTableSource("hTable", hbaseTable);
+		boolean isBatch = tEnv instanceof BatchTableEnvImpl;
+		TableEnvUtils.registerTableSource(tEnv, "hTable", hbaseTable, isBatch);
 		tEnv.registerFunction("toUTF8", new ToUTF8());
 		tEnv.registerFunction("toLong", new ToLong());
 
@@ -293,7 +299,7 @@ public class HBaseConnectorITCase extends HBaseTestBase {
 
 		DataStream<Row> ds = execEnv.fromCollection(testData1).returns(testTypeInfo1);
 		tEnv.createTemporaryView("src", ds);
-		tEnv.registerTableSink("hbase", tableSink);
+		TableEnvUtils.registerTableSink(tEnv, "hbase", tableSink, false);
 
 		String query = "INSERT INTO hbase SELECT ROW(f1c1), ROW(f2c1, f2c2), rowkey, ROW(f3c1, f3c2, f3c3) FROM src";
 		TableEnvUtil.execInsertSqlAndWaitResult(tEnv, query);
@@ -310,7 +316,8 @@ public class HBaseConnectorITCase extends HBaseTestBase {
 		hbaseTable.addColumn(FAMILY3, F3COL1, Double.class);
 		hbaseTable.addColumn(FAMILY3, F3COL2, Boolean.class);
 		hbaseTable.addColumn(FAMILY3, F3COL3, String.class);
-		batchTableEnv.registerTableSource("hTable", hbaseTable);
+		boolean isBatch = batchTableEnv instanceof BatchTableEnvImpl;
+		TableEnvUtils.registerTableSource(batchTableEnv, "hTable", hbaseTable, isBatch);
 
 		Table table = batchTableEnv.sqlQuery(
 			"SELECT " +
@@ -475,7 +482,7 @@ public class HBaseConnectorITCase extends HBaseTestBase {
 		TableSource<?> source = TableFactoryService
 			.find(HBaseTableFactory.class, tableProperties)
 			.createTableSource(tableProperties);
-		streamTableEnv.registerTableSource("hbaseLookup", source);
+		TableEnvUtils.registerTableSource(streamTableEnv, "hbaseLookup", source, false);
 		// perform a temporal table join query
 		String query = "SELECT a,family1.col1, family3.col3 FROM src " +
 			"JOIN hbaseLookup FOR SYSTEM_TIME AS OF src.proc as h ON src.a = h.rk";

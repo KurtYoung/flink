@@ -26,7 +26,7 @@ import org.apache.flink.table.api.scala._
 import org.apache.flink.table.planner.runtime.utils.JavaUserDefinedAggFunctions.{CountDistinct, DataViewTestAgg, WeightedAvg}
 import org.apache.flink.table.planner.runtime.utils.StreamingWithStateTestBase.StateBackendMode
 import org.apache.flink.table.planner.runtime.utils.TestData._
-import org.apache.flink.table.planner.runtime.utils.{JavaUserDefinedAggFunctions, StreamingWithStateTestBase, TestingRetractSink, TestingUpsertTableSink}
+import org.apache.flink.table.planner.runtime.utils.{JavaUserDefinedAggFunctions, StreamingWithStateTestBase, TableEnvUtil, TestingRetractSink, TestingUpsertTableSink}
 import org.apache.flink.table.planner.utils.CountMinMax
 import org.apache.flink.types.Row
 
@@ -307,7 +307,7 @@ class AggregateITCase(mode: StateBackendMode) extends StreamingWithStateTestBase
     val tableSink = new TestingUpsertTableSink(Array(0)).configure(
       Array[String]("c", "bMax"), Array[TypeInformation[_]](Types.STRING, Types.LONG))
 
-    tEnv.registerTableSink("testSink", tableSink)
+    TableEnvUtil.registerTableSink(tEnv, "testSink", tableSink)
     execInsertTableAndWaitResult(t, "testSink")
 
     val expected = List("A,1", "B,2", "C,3")

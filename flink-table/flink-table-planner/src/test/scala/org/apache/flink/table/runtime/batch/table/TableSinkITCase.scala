@@ -19,6 +19,7 @@
 package org.apache.flink.table.runtime.batch.table
 
 import java.io.File
+
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala.util.CollectionDataSets
 import org.apache.flink.api.scala.{ExecutionEnvironment, _}
@@ -27,7 +28,7 @@ import org.apache.flink.table.api.scala._
 import org.apache.flink.table.runtime.utils.TableProgramsCollectionTestBase
 import org.apache.flink.table.runtime.utils.TableProgramsTestBase.TableConfigMode
 import org.apache.flink.table.sinks.CsvTableSink
-import org.apache.flink.table.utils.MemoryTableSourceSinkUtil
+import org.apache.flink.table.utils.{MemoryTableSourceSinkUtil, TableEnvUtil}
 import org.apache.flink.table.utils.MemoryTableSourceSinkUtil.UnsafeMemoryOutputFormatTableSink
 import org.apache.flink.test.util.TestBaseUtils
 import org.junit.Test
@@ -52,7 +53,8 @@ class TableSinkITCase(
     val tEnv = BatchTableEnvironment.create(env, config)
     env.setParallelism(4)
 
-    tEnv.registerTableSink(
+    TableEnvUtil.registerTableSink(
+      tEnv,
       "testSink",
       new CsvTableSink(path, "|").configure(
         Array[String]("c", "b"), Array[TypeInformation[_]](Types.STRING, Types.LONG)))
@@ -83,7 +85,7 @@ class TableSinkITCase(
     val fieldNames = Array("c", "b")
     val fieldTypes: Array[TypeInformation[_]] = Array(Types.STRING, Types.LONG)
     val sink = new UnsafeMemoryOutputFormatTableSink
-    tEnv.registerTableSink("testSink", sink.configure(fieldNames, fieldTypes))
+    TableEnvUtil.registerTableSink(tEnv, "testSink", sink.configure(fieldNames, fieldTypes))
 
     val input = CollectionDataSets.get3TupleDataSet(env)
       .map(x => x).setParallelism(4) // increase DOP to 4

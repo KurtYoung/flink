@@ -323,44 +323,6 @@ abstract class TableEnvImpl(
       false)
   }
 
-  override def registerTableSource(name: String, tableSource: TableSource[_]): Unit = {
-    validateTableSource(tableSource)
-    registerTableSourceInternal(name, tableSource)
-  }
-
-  override def registerTableSink(
-    name: String,
-    fieldNames: Array[String],
-    fieldTypes: Array[TypeInformation[_]],
-    tableSink: TableSink[_]): Unit = {
-
-    if (fieldNames == null) {
-      throw new TableException("fieldNames must not be null.")
-    }
-    if (fieldTypes == null) {
-      throw new TableException("fieldTypes must not be null.")
-    }
-    if (fieldNames.length == 0) {
-      throw new TableException("fieldNames must not be empty.")
-    }
-    if (fieldNames.length != fieldTypes.length) {
-      throw new TableException("Same number of field names and types required.")
-    }
-
-    val configuredSink = tableSink.configure(fieldNames, fieldTypes)
-    registerTableSinkInternal(name, configuredSink)
-  }
-
-  override def registerTableSink(name: String, configuredSink: TableSink[_]): Unit = {
-    // validate
-    if (configuredSink.getTableSchema.getFieldNames.length == 0) {
-      throw new TableException("Field names must not be empty.")
-    }
-
-    validateTableSink(configuredSink)
-    registerTableSinkInternal(name, configuredSink)
-  }
-
   override def fromTableSource(source: TableSource[_]): Table = {
     createTable(new TableSourceQueryOperation(source, isBatchTable))
   }
@@ -382,76 +344,6 @@ abstract class TableEnvImpl(
     * @param tableSink table source to validate
     */
   protected def validateTableSink(tableSink: TableSink[_]): Unit
-
-  private def registerTableSourceInternal(
-      name: String,
-      tableSource: TableSource[_])
-    : Unit = {
-    val unresolvedIdentifier = UnresolvedIdentifier.of(name)
-    val objectIdentifier = catalogManager.qualifyIdentifier(unresolvedIdentifier)
-    // check if a table (source or sink) is registered
-    getTemporaryTable(objectIdentifier) match {
-
-      // check if a table (source or sink) is registered
-      case Some(table: ConnectorCatalogTable[_, _]) =>
-        if (table.getTableSource.isPresent) {
-          // wrapper contains source
-          throw new TableException(s"Table '$name' already exists. " +
-            s"Please choose a different name.")
-        } else {
-          // wrapper contains only sink (not source)
-          val sourceAndSink = ConnectorCatalogTable.sourceAndSink(
-            tableSource,
-            table.getTableSink.get,
-            isBatchTable)
-          catalogManager.dropTemporaryTable(objectIdentifier, false)
-          catalogManager.createTemporaryTable(
-            sourceAndSink,
-            objectIdentifier,
-            false)
-        }
-
-      // no table is registered
-      case _ =>
-        val source = ConnectorCatalogTable.source(tableSource, isBatchTable)
-        catalogManager.createTemporaryTable(source, objectIdentifier, false)
-    }
-  }
-
-  private def registerTableSinkInternal(
-      name: String,
-      tableSink: TableSink[_])
-    : Unit = {
-    val unresolvedIdentifier = UnresolvedIdentifier.of(name)
-    val objectIdentifier = catalogManager.qualifyIdentifier(unresolvedIdentifier)
-    // check if a table (source or sink) is registered
-    getTemporaryTable(objectIdentifier) match {
-
-      // table source and/or sink is registered
-      case Some(table: ConnectorCatalogTable[_, _]) =>
-        if (table.getTableSink.isPresent) {
-          // wrapper contains sink
-          throw new TableException(s"Table '$name' already exists. " +
-            s"Please choose a different name.")
-        } else {
-          // wrapper contains only source (not sink)
-          val sourceAndSink = ConnectorCatalogTable.sourceAndSink(
-            table.getTableSource.get,
-            tableSink,
-            isBatchTable)
-          catalogManager.dropTemporaryTable(objectIdentifier, false)
-          catalogManager.createTemporaryTable(
-            sourceAndSink,
-            objectIdentifier,
-            false)
-        }
-
-      // no table is registered
-      case _ =>
-        val sink = ConnectorCatalogTable.sink(tableSink, isBatchTable)
-        catalogManager.createTemporaryTable(sink, objectIdentifier, false)
-    }
-  }
 
   @throws[TableException]
   override def scan(tablePath: String*): Table = {

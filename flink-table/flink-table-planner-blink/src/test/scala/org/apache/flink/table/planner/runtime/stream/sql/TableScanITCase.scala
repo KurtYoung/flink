@@ -24,14 +24,12 @@ import org.apache.flink.streaming.api.functions.ProcessFunction
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.table.api.scala._
 import org.apache.flink.table.api.{TableSchema, Types}
-import org.apache.flink.table.planner.runtime.utils.{StreamingTestBase, TestingAppendSink}
+import org.apache.flink.table.planner.runtime.utils.{StreamingTestBase, TableEnvUtil, TestingAppendSink}
 import org.apache.flink.table.planner.utils.{TestPreserveWMTableSource, TestTableSourceWithTime, WithoutTimeAttributesTableSource}
 import org.apache.flink.types.Row
 import org.apache.flink.util.Collector
-
 import org.junit.Assert._
 import org.junit.Test
-
 import java.lang.{Integer => JInt, Long => JLong}
 
 class TableScanITCase extends StreamingTestBase {
@@ -60,7 +58,7 @@ class TableScanITCase extends StreamingTestBase {
     val returnType = Types.STRING
 
     val tableSource = new TestTableSourceWithTime(false, schema, returnType, data, null, "ptime")
-    tEnv.registerTableSource(tableName, tableSource)
+    TableEnvUtil.registerTableSource(tEnv, tableName, tableSource)
 
     val sqlQuery = s"SELECT name FROM $tableName"
     val result = tEnv.sqlQuery(sqlQuery).toAppendStream[Row]
@@ -95,7 +93,7 @@ class TableScanITCase extends StreamingTestBase {
       rowtime = "rowtime",
       mapping = mapping,
       existingTs = "ts")
-    tEnv.registerTableSource(tableName, tableSource)
+    TableEnvUtil.registerTableSource(tEnv, tableName, tableSource)
 
     val sqlQuery =
       s"""
@@ -137,7 +135,7 @@ class TableScanITCase extends StreamingTestBase {
       fieldNames)
 
     val tableSource = new TestPreserveWMTableSource(schema, rowType, data, "rtime")
-    tEnv.registerTableSource(tableName, tableSource)
+    TableEnvUtil.registerTableSource(tEnv, tableName, tableSource)
     val sqlQuery = s"SELECT id, name FROM $tableName"
     val sink = new TestingAppendSink
 

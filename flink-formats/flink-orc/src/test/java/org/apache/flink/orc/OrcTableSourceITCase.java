@@ -21,7 +21,9 @@ package org.apache.flink.orc;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.table.api.Table;
+import org.apache.flink.table.api.internal.BatchTableEnvImpl;
 import org.apache.flink.table.api.java.BatchTableEnvironment;
+import org.apache.flink.table.utils.TableEnvUtils;
 import org.apache.flink.test.util.MultipleProgramsTestBase;
 import org.apache.flink.types.Row;
 
@@ -54,7 +56,8 @@ public class OrcTableSourceITCase extends MultipleProgramsTestBase {
 			.path(getPath(TEST_FILE_FLAT))
 			.forOrcSchema(TEST_SCHEMA_FLAT)
 			.build();
-		tEnv.registerTableSource("OrcTable", orc);
+		boolean isBatch = tEnv instanceof BatchTableEnvImpl;
+		TableEnvUtils.registerTableSource(tEnv, "OrcTable", orc, isBatch);
 
 		String query =
 			"SELECT COUNT(*), " +
@@ -89,7 +92,8 @@ public class OrcTableSourceITCase extends MultipleProgramsTestBase {
 			.path(getPath(TEST_FILE_FLAT))
 			.forOrcSchema(TEST_SCHEMA_FLAT)
 			.build();
-		tEnv.registerTableSource("OrcTable", orc);
+		boolean isBatch = tEnv instanceof BatchTableEnvImpl;
+		TableEnvUtils.registerTableSource(tEnv, "OrcTable", orc, isBatch);
 
 		String query =
 			"SELECT " +

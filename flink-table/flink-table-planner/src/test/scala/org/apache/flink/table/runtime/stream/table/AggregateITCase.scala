@@ -26,9 +26,8 @@ import org.apache.flink.table.api.{EnvironmentSettings, Types}
 import org.apache.flink.table.runtime.utils.JavaUserDefinedAggFunctions.{CountDistinct, DataViewTestAgg, WeightedAvg}
 import org.apache.flink.table.runtime.utils.StreamITCase.RetractingSink
 import org.apache.flink.table.runtime.utils.{JavaUserDefinedAggFunctions, StreamITCase, StreamTestData, StreamingWithStateTestBase}
-import org.apache.flink.table.utils.CountMinMax
+import org.apache.flink.table.utils.{CountMinMax, TableEnvUtil}
 import org.apache.flink.types.Row
-
 import org.junit.Assert.assertEquals
 import org.junit.{Before, Test}
 
@@ -269,7 +268,8 @@ class AggregateITCase extends StreamingWithStateTestBase {
     data.+=((4, 3L, "C"))
     data.+=((5, 3L, "C"))
 
-    tEnv.registerTableSink(
+    TableEnvUtil.registerTableSink(
+      tEnv,
       "testSink",
       new TestUpsertSink(Array("c"), false).configure(
         Array[String]("c", "bMax"), Array[TypeInformation[_]](Types.STRING, Types.LONG)))

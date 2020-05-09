@@ -46,6 +46,7 @@ import org.apache.flink.streaming.api.functions.sink.SinkContextUtil;
 import org.apache.flink.streaming.runtime.operators.WriteAheadSinkTestBase;
 import org.apache.flink.table.api.TableResult;
 import org.apache.flink.table.api.java.StreamTableEnvironment;
+import org.apache.flink.table.utils.TableEnvUtils;
 import org.apache.flink.testutils.junit.FailsOnJava11;
 import org.apache.flink.types.Row;
 
@@ -463,12 +464,14 @@ public class CassandraConnectorITCase extends WriteAheadSinkTestBase<Tuple3<Stri
 		DataStreamSource<Row> source = env.fromCollection(rowCollection);
 
 		tEnv.createTemporaryView("testFlinkTable", source);
-		tEnv.registerTableSink(
+		TableEnvUtils.registerTableSink(
+			tEnv,
 			"cassandraTable",
 			new CassandraAppendTableSink(builder, injectTableName(INSERT_DATA_QUERY)).configure(
 				new String[]{"f0", "f1", "f2"},
 				new TypeInformation[]{Types.STRING, Types.INT, Types.INT}
-			));
+			),
+			false);
 
 		TableResult tableResult = tEnv.sqlQuery("select * from testFlinkTable").executeInsert("cassandraTable");
 		tableResult.getJobClient().get().getJobExecutionResult(Thread.currentThread().getContextClassLoader()).get();

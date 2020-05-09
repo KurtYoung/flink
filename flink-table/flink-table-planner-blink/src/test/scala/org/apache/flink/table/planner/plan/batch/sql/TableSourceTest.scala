@@ -22,6 +22,7 @@ import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.java.typeutils.RowTypeInfo
 import org.apache.flink.table.api.{DataTypes, TableException, TableSchema, Types, ValidationException}
 import org.apache.flink.table.planner.expressions.utils.Func1
+import org.apache.flink.table.planner.runtime.utils.TableEnvUtil
 import org.apache.flink.table.planner.utils._
 import org.apache.flink.table.runtime.types.TypeInfoDataTypeConverter
 import org.apache.flink.types.Row
@@ -36,13 +37,16 @@ class TableSourceTest extends TableTestBase {
 
   @Before
   def setup(): Unit = {
-    util.tableEnv.registerTableSource("ProjectableTable", new TestProjectableTableSource(
-      true,
-      tableSchema,
-      new RowTypeInfo(
-        tableSchema.getFieldDataTypes.map(TypeInfoDataTypeConverter.fromDataTypeToTypeInfo),
-        tableSchema.getFieldNames),
-      Seq.empty[Row])
+    TableEnvUtil.registerTableSource(
+      util.tableEnv,
+      "ProjectableTable",
+      new TestProjectableTableSource(
+        true,
+        tableSchema,
+        new RowTypeInfo(
+          tableSchema.getFieldDataTypes.map(TypeInfoDataTypeConverter.fromDataTypeToTypeInfo),
+          tableSchema.getFieldNames),
+        Seq.empty[Row])
     )
 
     TestFilterableTableSource.createTemporaryTable(
@@ -102,7 +106,8 @@ class TableSourceTest extends TableTestBase {
       Array(Types.INT, deepNested, nested1, Types.STRING).asInstanceOf[Array[TypeInformation[_]]],
       Array("id", "deepNested", "nested", "name"))
 
-    util.tableEnv.registerTableSource(
+    TableEnvUtil.registerTableSource(
+      util.tableEnv,
       "T",
       new TestNestedProjectableTableSource(true, tableSchema, returnType, Seq()))
 

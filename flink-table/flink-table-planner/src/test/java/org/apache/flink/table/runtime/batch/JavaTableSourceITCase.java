@@ -25,6 +25,7 @@ import org.apache.flink.table.api.java.BatchTableEnvironment;
 import org.apache.flink.table.runtime.utils.CommonTestData;
 import org.apache.flink.table.runtime.utils.TableProgramsCollectionTestBase;
 import org.apache.flink.table.sources.BatchTableSource;
+import org.apache.flink.table.utils.TableEnvUtil;
 import org.apache.flink.types.Row;
 
 import org.junit.Test;
@@ -52,7 +53,7 @@ public class JavaTableSourceITCase extends TableProgramsCollectionTestBase {
 		BatchTableEnvironment tableEnv = BatchTableEnvironment.create(env, config());
 		BatchTableSource csvTable = CommonTestData.getCsvTableSource();
 
-		tableEnv.registerTableSource("persons", csvTable);
+		TableEnvUtil.registerTableSource(tableEnv, "persons", csvTable);
 
 		Table result = tableEnv.scan("persons")
 			.select($("id"), $("first"), $("last"), $("score"));
@@ -78,7 +79,7 @@ public class JavaTableSourceITCase extends TableProgramsCollectionTestBase {
 		BatchTableEnvironment tableEnv = BatchTableEnvironment.create(env, config());
 		BatchTableSource csvTable = CommonTestData.getCsvTableSource();
 
-		tableEnv.registerTableSource("persons", csvTable);
+		TableEnvUtil.registerTableSource(tableEnv, "persons", csvTable);
 
 		Table result = tableEnv
 			.sqlQuery("SELECT `last`, FLOOR(id), score * 2 FROM persons WHERE score < 20");

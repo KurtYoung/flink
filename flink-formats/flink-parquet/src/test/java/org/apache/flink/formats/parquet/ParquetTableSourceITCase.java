@@ -23,7 +23,9 @@ import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.core.fs.Path;
 import org.apache.flink.formats.parquet.utils.TestUtil;
 import org.apache.flink.table.api.Table;
+import org.apache.flink.table.api.internal.BatchTableEnvImpl;
 import org.apache.flink.table.api.java.BatchTableEnvironment;
+import org.apache.flink.table.utils.TableEnvUtils;
 import org.apache.flink.test.util.MultipleProgramsTestBase;
 import org.apache.flink.types.Row;
 
@@ -64,7 +66,8 @@ public class ParquetTableSourceITCase extends MultipleProgramsTestBase {
 		ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 		BatchTableEnvironment batchTableEnvironment = BatchTableEnvironment.create(env);
 		ParquetTableSource tableSource = createParquetTableSource(testPath);
-		batchTableEnvironment.registerTableSource("ParquetTable", tableSource);
+		boolean isBatch = batchTableEnvironment instanceof BatchTableEnvImpl;
+		TableEnvUtils.registerTableSource(batchTableEnvironment, "ParquetTable", tableSource, isBatch);
 		String query =
 			"SELECT foo " +
 			"FROM ParquetTable";
@@ -81,7 +84,8 @@ public class ParquetTableSourceITCase extends MultipleProgramsTestBase {
 		ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 		BatchTableEnvironment batchTableEnvironment = BatchTableEnvironment.create(env);
 		ParquetTableSource tableSource = createParquetTableSource(testPath);
-		batchTableEnvironment.registerTableSource("ParquetTable", tableSource);
+		boolean isBatch = batchTableEnvironment instanceof BatchTableEnvImpl;
+		TableEnvUtils.registerTableSource(batchTableEnvironment, "ParquetTable", tableSource, isBatch);
 		String query =
 			"SELECT foo " +
 			"FROM ParquetTable WHERE foo >= 1 AND bar.spam >= 30 AND CARDINALITY(arr) >= 1 AND arr[1] <= 50";

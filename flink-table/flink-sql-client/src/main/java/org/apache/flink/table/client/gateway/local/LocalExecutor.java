@@ -39,6 +39,7 @@ import org.apache.flink.core.plugin.PluginUtils;
 import org.apache.flink.table.api.Table;
 import org.apache.flink.table.api.TableEnvironment;
 import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.api.internal.BatchTableEnvImpl;
 import org.apache.flink.table.catalog.exceptions.CatalogException;
 import org.apache.flink.table.client.SqlClientException;
 import org.apache.flink.table.client.config.Environment;
@@ -56,6 +57,7 @@ import org.apache.flink.table.client.gateway.local.result.MaterializedResult;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.utils.LogicalTypeUtils;
 import org.apache.flink.table.types.utils.DataTypeUtils;
+import org.apache.flink.table.utils.TableEnvUtils;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.JarUtils;
 import org.apache.flink.util.StringUtils;
@@ -627,7 +629,8 @@ public class LocalExecutor implements Executor {
 		try {
 			// writing to a sink requires an optimization step that might reference UDFs during code compilation
 			context.wrapClassLoader(() -> {
-				context.getTableEnvironment().registerTableSink(tableName, result.getTableSink());
+				boolean isBatch = context.getTableEnvironment() instanceof BatchTableEnvImpl;
+				TableEnvUtils.registerTableSink(context.getTableEnvironment(), tableName, result.getTableSink(), isBatch);
 				table.insertInto(tableName);
 			});
 			pipeline = context.createPipeline(jobName);

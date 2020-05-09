@@ -22,6 +22,7 @@ import org.apache.flink.api.scala.ExecutionEnvironment
 import org.apache.flink.table.api.scala._
 import org.apache.flink.table.runtime.utils.{CommonTestData, TableProgramsCollectionTestBase}
 import org.apache.flink.table.runtime.utils.TableProgramsTestBase.TableConfigMode
+import org.apache.flink.table.utils.TableEnvUtil
 import org.apache.flink.test.util.TestBaseUtils
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -42,7 +43,7 @@ class TableSourceITCase(
     val env = ExecutionEnvironment.getExecutionEnvironment
     val tEnv = BatchTableEnvironment.create(env, config)
 
-    tEnv.registerTableSource("csvTable", csvTable)
+    TableEnvUtil.registerTableSource(tEnv, "csvTable", csvTable)
     val results = tEnv.sqlQuery(
       "SELECT id, `first`, `last`, score FROM csvTable").collect()
 
@@ -66,7 +67,7 @@ class TableSourceITCase(
     val env = ExecutionEnvironment.getExecutionEnvironment
     val tEnv = BatchTableEnvironment.create(env, config)
 
-    tEnv.registerTableSource("csvTable", csvTable)
+    TableEnvUtil.registerTableSource(tEnv, "csvTable", csvTable)
     val results = tEnv.sqlQuery(
       "SELECT id, `first`, `last`, score FROM csvTable").collect()
 
@@ -83,7 +84,7 @@ class TableSourceITCase(
     val tableEnv = BatchTableEnvironment.create(env, config)
     val nestedTable = CommonTestData.getNestedTableSource
 
-    tableEnv.registerTableSource("NestedPersons", nestedTable)
+    TableEnvUtil.registerTableSource(tableEnv, "NestedPersons", nestedTable)
 
     val result = tableEnv.sqlQuery("SELECT NestedPersons.firstName, NestedPersons.lastName," +
         "NestedPersons.address.street, NestedPersons.address.city AS city " +

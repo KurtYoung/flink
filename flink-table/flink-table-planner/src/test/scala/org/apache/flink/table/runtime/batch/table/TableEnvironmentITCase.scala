@@ -25,7 +25,7 @@ import org.apache.flink.api.scala.util.CollectionDataSets
 import org.apache.flink.table.api.scala._
 import org.apache.flink.table.runtime.utils.TableProgramsTestBase.TableConfigMode
 import org.apache.flink.table.runtime.utils.{TableProgramsCollectionTestBase, TableProgramsTestBase}
-import org.apache.flink.table.utils.MemoryTableSourceSinkUtil
+import org.apache.flink.table.utils.{MemoryTableSourceSinkUtil, TableEnvUtil}
 import org.apache.flink.test.util.TestBaseUtils
 import org.apache.flink.types.Row
 import org.junit.Assert.assertEquals
@@ -193,7 +193,7 @@ class TableEnvironmentITCase(
     val fieldNames = Array("d", "e", "f")
     val fieldTypes = tEnv.scan("sourceTable").getSchema.getFieldTypes
     val sink = new MemoryTableSourceSinkUtil.UnsafeMemoryAppendTableSink
-    tEnv.registerTableSink("targetTable", sink.configure(fieldNames, fieldTypes))
+    TableEnvUtil.registerTableSink(tEnv, "targetTable", sink.configure(fieldNames, fieldTypes))
 
     tEnv.scan("sourceTable")
       .select('a, 'b, 'c)

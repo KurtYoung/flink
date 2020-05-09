@@ -16,32 +16,14 @@
  * limitations under the License.
  */
 
-package org.apache.flink.table.planner.runtime.utils
+package org.apache.flink.table.utils
 
-import org.apache.flink.api.common.JobExecutionResult
-import org.apache.flink.table.api.{Table, TableEnvironment}
+import org.apache.flink.table.api.TableEnvironment
+import org.apache.flink.table.api.internal.BatchTableEnvImpl
 import org.apache.flink.table.sinks.TableSink
-import org.apache.flink.table.sources.TableSource
-import org.apache.flink.table.utils.TableEnvUtils
+import org.apache.flink.table.sources.{TableSource, TableSourceValidation}
 
 object TableEnvUtil {
-
-  def execInsertSqlAndWaitResult(tEnv: TableEnvironment, insert: String): JobExecutionResult = {
-    val tableResult = tEnv.executeSql(insert)
-    // wait to finish
-    tableResult.getJobClient.get
-      .getJobExecutionResult(Thread.currentThread.getContextClassLoader)
-      .get
-  }
-
-  def execInsertTableAndWaitResult(table: Table, targetPath: String): JobExecutionResult = {
-    val tableResult =  table.executeInsert(targetPath)
-    // wait to finish
-    tableResult.getJobClient.get
-      .getJobExecutionResult(Thread.currentThread.getContextClassLoader)
-      .get
-  }
-
   /**
     * Register a [[TableSource]] as a table under a given name in the [[TableEnvironment]]'s
     * catalog.
@@ -50,7 +32,12 @@ object TableEnvUtil {
       tEnv: TableEnvironment,
       name: String,
       tableSource: TableSource[_]): Unit = {
-    TableEnvUtils.registerTableSource(tEnv, name, tableSource, false)
+    val isBatch = tEnv match {
+      case _: BatchTableEnvImpl => true
+      case _ => false
+    }
+    TableSourceValidation.validateTableSource(tableSource, tableSource.getTableSchema)
+    TableEnvUtils.registerTableSource(tEnv, name, tableSource, isBatch)
   }
 
   /**
@@ -60,6 +47,10 @@ object TableEnvUtil {
       tEnv: TableEnvironment,
       name: String,
       tableSink: TableSink[_]): Unit = {
-    TableEnvUtils.registerTableSink(tEnv, name, tableSink, false)
+    val isBatch = tEnv match {
+      case _: BatchTableEnvImpl => true
+      case _ => false
+    }
+    TableEnvUtils.registerTableSink(tEnv, name, tableSink, isBatch)
   }
 }

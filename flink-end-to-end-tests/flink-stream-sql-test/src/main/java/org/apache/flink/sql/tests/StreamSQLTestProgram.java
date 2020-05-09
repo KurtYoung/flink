@@ -53,6 +53,7 @@ import org.apache.flink.table.sources.RowtimeAttributeDescriptor;
 import org.apache.flink.table.sources.StreamTableSource;
 import org.apache.flink.table.sources.tsextractors.ExistingField;
 import org.apache.flink.table.sources.wmstrategies.BoundedOutOfOrderTimestamps;
+import org.apache.flink.table.utils.TableEnvUtils;
 import org.apache.flink.types.Row;
 
 import java.io.PrintStream;
@@ -108,8 +109,8 @@ public class StreamSQLTestProgram {
 
 		final StreamTableEnvironment tEnv = StreamTableEnvironment.create(sEnv, settings);
 
-		tEnv.registerTableSource("table1", new GeneratorTableSource(10, 100, 60, 0));
-		tEnv.registerTableSource("table2", new GeneratorTableSource(5, 0.2f, 60, 5));
+		TableEnvUtils.registerTableSource(tEnv, "table1", new GeneratorTableSource(10, 100, 60, 0), false);
+		TableEnvUtils.registerTableSource(tEnv, "table2", new GeneratorTableSource(5, 0.2f, 60, 5), false);
 
 		int overWindowSizeSeconds = 1;
 		int tumbleWindowSizeSeconds = 10;

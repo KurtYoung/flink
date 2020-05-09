@@ -25,9 +25,8 @@ import org.apache.flink.table.api.scala._
 import org.apache.flink.table.api.{EnvironmentSettings, Types}
 import org.apache.flink.table.runtime.stream.table.{RowCollector, TestRetractSink, TestUpsertSink}
 import org.apache.flink.table.runtime.utils.{StreamTestData, StreamingWithStateTestBase}
-import org.apache.flink.table.utils.MemoryTableSourceSinkUtil
+import org.apache.flink.table.utils.{MemoryTableSourceSinkUtil, TableEnvUtil}
 import org.apache.flink.test.util.TestBaseUtils
-
 import org.junit.Assert._
 import org.junit.Test
 
@@ -54,7 +53,7 @@ class InsertIntoITCase extends StreamingWithStateTestBase {
     val fieldTypes: Array[TypeInformation[_]] = Array(Types.STRING, Types.SQL_TIMESTAMP, Types.LONG)
     val sink = new MemoryTableSourceSinkUtil.UnsafeMemoryAppendTableSink
 
-    tEnv.registerTableSink("targetTable", sink.configure(fieldNames, fieldTypes))
+    TableEnvUtil.registerTableSink(tEnv, "targetTable", sink.configure(fieldNames, fieldTypes))
 
     tEnv.sqlUpdate(
       s"""INSERT INTO targetTable
@@ -80,7 +79,8 @@ class InsertIntoITCase extends StreamingWithStateTestBase {
       .assignAscendingTimestamps(_._1.toLong)
 
     tEnv.createTemporaryView("sourceTable", t, 'id, 'num, 'text)
-    tEnv.registerTableSink(
+    TableEnvUtil.registerTableSink(
+      tEnv,
       "targetTable",
       new TestRetractSink().configure(
         Array("len", "cntid", "sumnum"),
@@ -115,7 +115,8 @@ class InsertIntoITCase extends StreamingWithStateTestBase {
       .assignAscendingTimestamps(_._1.toLong)
 
     tEnv.createTemporaryView("sourceTable", t, 'id, 'num, 'text, 'rowtime.rowtime)
-    tEnv.registerTableSink(
+    TableEnvUtil.registerTableSink(
+      tEnv,
       "targetTable",
       new TestRetractSink().configure(
         Array("wend", "cntid", "sumnum"),
@@ -158,7 +159,8 @@ class InsertIntoITCase extends StreamingWithStateTestBase {
       .assignAscendingTimestamps(_._1.toLong)
 
     tEnv.createTemporaryView("sourceTable", t, 'id, 'num, 'text)
-    tEnv.registerTableSink(
+    TableEnvUtil.registerTableSink(
+      tEnv,
       "targetTable",
       new TestUpsertSink(Array("cnt", "cTrue"), false).configure(
         Array("cnt", "cntid", "cTrue"),
@@ -200,7 +202,8 @@ class InsertIntoITCase extends StreamingWithStateTestBase {
       .assignAscendingTimestamps(_._1.toLong)
 
     tEnv.createTemporaryView("sourceTable", t, 'id, 'num, 'text, 'rowtime.rowtime)
-    tEnv.registerTableSink(
+    TableEnvUtil.registerTableSink(
+      tEnv,
       "targetTable",
       new TestUpsertSink(Array("wend", "num"), true).configure(
         Array("num", "wend", "cntid"),
@@ -246,7 +249,8 @@ class InsertIntoITCase extends StreamingWithStateTestBase {
       .assignAscendingTimestamps(_._1.toLong)
 
     tEnv.createTemporaryView("sourceTable", t, 'id, 'num, 'text, 'rowtime.rowtime)
-    tEnv.registerTableSink(
+    TableEnvUtil.registerTableSink(
+      tEnv,
       "targetTable",
       new TestUpsertSink(Array("wstart", "wend", "num"), true).configure(
         Array("wstart", "wend", "num", "cntid"),
@@ -293,7 +297,8 @@ class InsertIntoITCase extends StreamingWithStateTestBase {
       .assignAscendingTimestamps(_._1.toLong)
 
     tEnv.createTemporaryView("sourceTable", t, 'id, 'num, 'text, 'rowtime.rowtime)
-    tEnv.registerTableSink(
+    TableEnvUtil.registerTableSink(
+      tEnv,
       "targetTable",
       new TestUpsertSink(null, true).configure(
         Array("wend", "cntid"),
@@ -338,7 +343,8 @@ class InsertIntoITCase extends StreamingWithStateTestBase {
       .assignAscendingTimestamps(_._1.toLong)
 
     tEnv.createTemporaryView("sourceTable", t, 'id, 'num, 'text, 'rowtime.rowtime)
-    tEnv.registerTableSink(
+    TableEnvUtil.registerTableSink(
+      tEnv,
       "targetTable",
       new TestUpsertSink(null, true).configure(
         Array("num", "cntid"),

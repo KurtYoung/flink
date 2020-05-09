@@ -21,7 +21,6 @@ package org.apache.flink.table.api.internal;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.JobExecutionResult;
-import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.dag.Pipeline;
 import org.apache.flink.api.dag.Transformation;
 import org.apache.flink.core.execution.JobClient;
@@ -45,7 +44,6 @@ import org.apache.flink.table.catalog.CatalogFunction;
 import org.apache.flink.table.catalog.CatalogManager;
 import org.apache.flink.table.catalog.CatalogTable;
 import org.apache.flink.table.catalog.CatalogTableImpl;
-import org.apache.flink.table.catalog.ConnectorCatalogTable;
 import org.apache.flink.table.catalog.FunctionCatalog;
 import org.apache.flink.table.catalog.GenericInMemoryCatalog;
 import org.apache.flink.table.catalog.ObjectIdentifier;
@@ -426,32 +424,6 @@ public class TableEnvironmentImpl implements TableEnvironmentInternal {
 		CatalogBaseTable tableTable = new QueryOperationCatalogView(queryOperation);
 
 		catalogManager.createTemporaryTable(tableTable, tableIdentifier, false);
-	}
-
-	@Override
-	public void registerTableSource(String name, TableSource<?> tableSource) {
-		// only accept StreamTableSource and LookupableTableSource here
-		// TODO should add a validation, while StreamTableSource is in flink-table-api-java-bridge module now
-		registerTableSourceInternal(name, tableSource);
-	}
-
-	@Override
-	public void registerTableSink(
-			String name,
-			String[] fieldNames,
-			TypeInformation<?>[] fieldTypes,
-			TableSink<?> tableSink) {
-		registerTableSink(name, tableSink.configure(fieldNames, fieldTypes));
-	}
-
-	@Override
-	public void registerTableSink(String name, TableSink<?> configuredSink) {
-		// validate
-		if (configuredSink.getTableSchema().getFieldCount() == 0) {
-			throw new TableException("Table schema cannot be empty.");
-		}
-
-		registerTableSinkInternal(name, configuredSink);
 	}
 
 	@Override
@@ -1180,69 +1152,6 @@ public class TableEnvironmentImpl implements TableEnvironmentInternal {
 		} else {
 			return new ExplainDetail[0];
 		}
-	}
-
-	private void registerTableSourceInternal(String name, TableSource<?> tableSource) {
-		validateTableSource(tableSource);
-		ObjectIdentifier objectIdentifier = catalogManager.qualifyIdentifier(UnresolvedIdentifier.of(name));
-		Optional<CatalogBaseTable> table = getTemporaryTable(objectIdentifier);
-
-		if (table.isPresent()) {
-			if (table.get() instanceof ConnectorCatalogTable<?, ?>) {
-				ConnectorCatalogTable<?, ?> sourceSinkTable = (ConnectorCatalogTable<?, ?>) table.get();
-				if (sourceSinkTable.getTableSource().isPresent()) {
-					throw new ValidationException(String.format(
-						"Table '%s' already exists. Please choose a different name.", name));
-				} else {
-					// wrapper contains only sink (not source)
-					ConnectorCatalogTable sourceAndSink = ConnectorCatalogTable.sourceAndSink(
-						tableSource,
-						sourceSinkTable.getTableSink().get(),
-						!IS_STREAM_TABLE);
-					catalogManager.dropTemporaryTable(objectIdentifier, false);
-					catalogManager.createTemporaryTable(sourceAndSink, objectIdentifier, false);
-				}
-			} else {
-				throw new ValidationException(String.format(
-					"Table '%s' already exists. Please choose a different name.", name));
-			}
-		} else {
-			ConnectorCatalogTable source = ConnectorCatalogTable.source(tableSource, !IS_STREAM_TABLE);
-			catalogManager.createTemporaryTable(source, objectIdentifier, false);
-		}
-	}
-
-	private void registerTableSinkInternal(String name, TableSink<?> tableSink) {
-		ObjectIdentifier objectIdentifier = catalogManager.qualifyIdentifier(UnresolvedIdentifier.of(name));
-		Optional<CatalogBaseTable> table = getTemporaryTable(objectIdentifier);
-
-		if (table.isPresent()) {
-			if (table.get() instanceof ConnectorCatalogTable<?, ?>) {
-				ConnectorCatalogTable<?, ?> sourceSinkTable = (ConnectorCatalogTable<?, ?>) table.get();
-				if (sourceSinkTable.getTableSink().isPresent()) {
-					throw new ValidationException(String.format(
-						"Table '%s' already exists. Please choose a different name.", name));
-				} else {
-					// wrapper contains only sink (not source)
-					ConnectorCatalogTable sourceAndSink = ConnectorCatalogTable
-						.sourceAndSink(sourceSinkTable.getTableSource().get(), tableSink, !IS_STREAM_TABLE);
-					catalogManager.dropTemporaryTable(objectIdentifier, false);
-					catalogManager.createTemporaryTable(sourceAndSink, objectIdentifier, false);
-				}
-			} else {
-				throw new ValidationException(String.format(
-					"Table '%s' already exists. Please choose a different name.", name));
-			}
-		} else {
-			ConnectorCatalogTable sink = ConnectorCatalogTable.sink(tableSink, !IS_STREAM_TABLE);
-			catalogManager.createTemporaryTable(sink, objectIdentifier, false);
-		}
-	}
-
-	private Optional<CatalogBaseTable> getTemporaryTable(ObjectIdentifier identifier) {
-		return catalogManager.getTable(identifier)
-			.filter(CatalogManager.TableLookupResult::isTemporary)
-			.map(CatalogManager.TableLookupResult::getTable);
 	}
 
 	private TableResult createCatalogFunction(

@@ -1241,8 +1241,7 @@ class AggregateITCase(
 
     val tableSink = new TestingUpsertTableSink(Array(0)).configure(
       Array[String]("c", "bMax"), Array[TypeInformation[_]](Types.STRING, Types.LONG))
-    tEnv.registerTableSink("testSink", tableSink)
-
+    TableEnvUtil.registerTableSink(tEnv, "testSink", tableSink)
     execInsertSqlAndWaitResult(
       """
         |insert into testSink

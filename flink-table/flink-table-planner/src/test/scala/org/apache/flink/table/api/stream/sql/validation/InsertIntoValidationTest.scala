@@ -23,8 +23,7 @@ import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
 import org.apache.flink.table.api.scala._
 import org.apache.flink.table.api.{EnvironmentSettings, Types, ValidationException}
 import org.apache.flink.table.runtime.utils.StreamTestData
-import org.apache.flink.table.utils.MemoryTableSourceSinkUtil
-
+import org.apache.flink.table.utils.{MemoryTableSourceSinkUtil, TableEnvUtil}
 import org.junit.Test
 
 class InsertIntoValidationTest {
@@ -41,7 +40,7 @@ class InsertIntoValidationTest {
     val fieldNames = Array("d", "e")
     val fieldTypes: Array[TypeInformation[_]] = Array(Types.INT, Types.LONG)
     val sink = new MemoryTableSourceSinkUtil.UnsafeMemoryAppendTableSink
-    tEnv.registerTableSink("targetTable", sink.configure(fieldNames, fieldTypes))
+    TableEnvUtil.registerTableSink(tEnv, "targetTable", sink.configure(fieldNames, fieldTypes))
 
     val sql = "INSERT INTO targetTable SELECT a, b, c FROM sourceTable"
 
@@ -59,7 +58,7 @@ class InsertIntoValidationTest {
     val fieldNames = Array("d", "e", "f")
     val fieldTypes: Array[TypeInformation[_]] = Array(Types.STRING, Types.INT, Types.LONG)
     val sink = new MemoryTableSourceSinkUtil.UnsafeMemoryAppendTableSink
-    tEnv.registerTableSink("targetTable", sink.configure(fieldNames, fieldTypes))
+    TableEnvUtil.registerTableSink(tEnv, "targetTable", sink.configure(fieldNames, fieldTypes))
 
     val sql = "INSERT INTO targetTable SELECT a, b, c FROM sourceTable"
 
@@ -77,7 +76,7 @@ class InsertIntoValidationTest {
     val fieldNames = Array("d", "e", "f")
     val fieldTypes = tEnv.scan("sourceTable").getSchema.getFieldTypes
     val sink = new MemoryTableSourceSinkUtil.UnsafeMemoryAppendTableSink
-    tEnv.registerTableSink("targetTable", sink.configure(fieldNames, fieldTypes))
+    TableEnvUtil.registerTableSink(tEnv, "targetTable", sink.configure(fieldNames, fieldTypes))
 
     val sql = "INSERT INTO targetTable (d, f) SELECT a, c FROM sourceTable"
 

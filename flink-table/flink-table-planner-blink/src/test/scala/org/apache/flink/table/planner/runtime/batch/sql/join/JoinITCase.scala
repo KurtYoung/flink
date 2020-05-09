@@ -28,7 +28,7 @@ import org.apache.flink.streaming.api.transformations.{OneInputTransformation, S
 import org.apache.flink.table.planner.delegation.PlannerBase
 import org.apache.flink.table.planner.expressions.utils.FuncWithOpen
 import org.apache.flink.table.planner.runtime.batch.sql.join.JoinType.{BroadcastHashJoin, HashJoin, JoinType, NestedLoopJoin, SortMergeJoin}
-import org.apache.flink.table.planner.runtime.utils.BatchTestBase
+import org.apache.flink.table.planner.runtime.utils.{BatchTestBase, TableEnvUtil}
 import org.apache.flink.table.planner.runtime.utils.BatchTestBase.row
 import org.apache.flink.table.planner.runtime.utils.TestData._
 import org.apache.flink.table.planner.sinks.CollectRowTableSink
@@ -101,7 +101,7 @@ class JoinITCase(expectedJoinType: JoinType) extends BatchTestBase {
   def testLongHashJoinGenerator(): Unit = {
     if (expectedJoinType == HashJoin) {
       val sink = (new CollectRowTableSink).configure(Array("c"), Array(Types.STRING))
-      tEnv.registerTableSink("outputTable", sink)
+      TableEnvUtil.registerTableSink(tEnv, "outputTable", sink)
       val stmtSet = tEnv.createStatementSet()
       val table = tEnv.sqlQuery("SELECT c FROM SmallTable3, Table5 WHERE b = e")
       stmtSet.addInsert("outputTable", table)

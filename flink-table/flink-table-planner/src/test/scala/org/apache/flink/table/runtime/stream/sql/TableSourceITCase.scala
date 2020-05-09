@@ -23,9 +23,9 @@ import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
 import org.apache.flink.table.api.EnvironmentSettings
 import org.apache.flink.table.api.scala._
 import org.apache.flink.table.runtime.utils.{CommonTestData, StreamITCase}
+import org.apache.flink.table.utils.TableEnvUtil
 import org.apache.flink.test.util.AbstractTestBase
 import org.apache.flink.types.Row
-
 import org.junit.Assert._
 import org.junit.Test
 
@@ -41,7 +41,7 @@ class TableSourceITCase extends AbstractTestBase {
     val tEnv = StreamTableEnvironment.create(env, settings)
     StreamITCase.testResults = mutable.MutableList()
 
-    tEnv.registerTableSource("persons", csvTable)
+    TableEnvUtil.registerTableSource(tEnv, "persons", csvTable)
 
     tEnv.sqlQuery(
       "SELECT id, `first`, `last`, score FROM persons WHERE id < 4 ")

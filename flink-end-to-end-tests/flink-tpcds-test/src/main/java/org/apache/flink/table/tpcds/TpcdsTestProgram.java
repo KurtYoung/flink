@@ -34,6 +34,7 @@ import org.apache.flink.table.tpcds.schema.TpcdsSchema;
 import org.apache.flink.table.tpcds.schema.TpcdsSchemaProvider;
 import org.apache.flink.table.tpcds.stats.TpcdsStatsProvider;
 import org.apache.flink.table.types.utils.TypeConversions;
+import org.apache.flink.table.utils.TableEnvUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -92,7 +93,9 @@ public class TpcdsTestProgram {
 
 			//register sink table
 			String sinkTableName = QUERY_PREFIX + queryId + "_sinkTable";
-			tableEnvironment.registerTableSink(sinkTableName,
+			TableEnvUtils.registerTableSink(
+					tableEnvironment,
+					sinkTableName,
 					new CsvTableSink(
 						sinkTablePath + FILE_SEPARATOR + queryId + RESULT_SUFFIX,
 						COL_DELIMITER,
@@ -100,7 +103,8 @@ public class TpcdsTestProgram {
 						FileSystem.WriteMode.OVERWRITE,
 						resultTable.getSchema().getFieldNames(),
 						resultTable.getSchema().getFieldDataTypes()
-					));
+					),
+					false);
 			TableResult tableResult = resultTable.executeInsert(sinkTableName);
 			// wait job finish
 			tableResult.getJobClient().get()

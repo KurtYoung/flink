@@ -23,12 +23,11 @@ import org.apache.flink.api.java.typeutils.RowTypeInfo
 import org.apache.flink.table.api.{DataTypes, TableSchema, Types}
 import org.apache.flink.table.planner.runtime.utils.BatchAbstractTestBase.TEMPORARY_FOLDER
 import org.apache.flink.table.planner.runtime.utils.BatchTestBase.row
-import org.apache.flink.table.planner.runtime.utils.{BatchTestBase, TestData}
+import org.apache.flink.table.planner.runtime.utils.{BatchTestBase, TableEnvUtil, TestData}
 import org.apache.flink.table.planner.utils.{TestDataTypeTableSource, TestFileInputFormatTableSource, TestFilterableTableSource, TestInputFormatTableSource, TestNestedProjectableTableSource, TestPartitionableSourceFactory, TestProjectableTableSource, TestTableSourceSinks}
 import org.apache.flink.table.runtime.types.TypeInfoDataTypeConverter
 import org.apache.flink.types.Row
 import org.junit.{Before, Test}
-
 import java.io.FileWriter
 import java.lang.{Boolean => JBool, Integer => JInt, Long => JLong}
 import java.math.{BigDecimal => JDecimal}
@@ -45,7 +44,7 @@ class TableSourceITCase extends BatchTestBase {
     val tableSchema = TableSchema.builder().fields(
       Array("a", "b", "c"),
       Array(DataTypes.INT(), DataTypes.BIGINT(), DataTypes.STRING())).build()
-    tEnv.registerTableSource("MyTable", new TestProjectableTableSource(
+    TableEnvUtil.registerTableSource(tEnv, "MyTable", new TestProjectableTableSource(
       true,
       tableSchema,
       new RowTypeInfo(
@@ -122,7 +121,8 @@ class TableSourceITCase extends BatchTestBase {
       Array(Types.LONG, deepNested, nested1, Types.STRING).asInstanceOf[Array[TypeInformation[_]]],
       Array("id", "deepNested", "nested", "name"))
 
-    tEnv.registerTableSource(
+    TableEnvUtil.registerTableSource(
+      tEnv,
       "T",
       new TestNestedProjectableTableSource(true, tableSchema, returnType, data))
 

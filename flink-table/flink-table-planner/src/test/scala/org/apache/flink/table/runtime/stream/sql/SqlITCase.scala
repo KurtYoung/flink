@@ -33,9 +33,8 @@ import org.apache.flink.table.runtime.stream.sql.SqlITCase.TimestampAndWatermark
 import org.apache.flink.table.runtime.utils.JavaUserDefinedAggFunctions.MultiArgCount
 import org.apache.flink.table.runtime.utils.TimeTestUtil.EventTimeSourceFunction
 import org.apache.flink.table.runtime.utils.{JavaUserDefinedTableFunctions, StreamITCase, StreamTestData, StreamingWithStateTestBase}
-import org.apache.flink.table.utils.{InMemoryTableFactory, MemoryTableSourceSinkUtil}
+import org.apache.flink.table.utils.{InMemoryTableFactory, MemoryTableSourceSinkUtil, TableEnvUtil}
 import org.apache.flink.types.Row
-
 import org.junit.Assert._
 import org.junit._
 
@@ -769,9 +768,9 @@ class SqlITCase extends StreamingWithStateTestBase {
       .toTable(tEnv, 'a, 'b, 'c, 'rowtime.rowtime)
     tEnv.registerTable("sourceTable", t)
 
-    tEnv.registerTableSource("targetTable",
+    TableEnvUtil.registerTableSource(tEnv, "targetTable",
       new InMemoryTableFactory(3).createStreamTableSource(properties))
-    tEnv.registerTableSink("targetTable",
+    TableEnvUtil.registerTableSink(tEnv, "targetTable",
       new InMemoryTableFactory(3).createStreamTableSink(properties))
 
     tEnv.sqlUpdate("INSERT INTO targetTable SELECT a, b, c, rowtime FROM sourceTable")

@@ -24,7 +24,7 @@ import org.apache.flink.table.api.Types
 import org.apache.flink.table.api.scala._
 import org.apache.flink.table.planner.runtime.utils.StreamingWithStateTestBase.StateBackendMode
 import org.apache.flink.table.planner.runtime.utils.TimeTestUtil.TimestampAndWatermarkWithOffset
-import org.apache.flink.table.planner.runtime.utils.{StreamingWithStateTestBase, TestData, TestingAppendSink, TestingRetractSink, TestingRetractTableSink}
+import org.apache.flink.table.planner.runtime.utils.{StreamingWithStateTestBase, TableEnvUtil, TestData, TestingAppendSink, TestingRetractSink, TestingRetractTableSink}
 import org.apache.flink.types.Row
 
 import org.junit.Assert.assertEquals
@@ -264,7 +264,7 @@ class UnnestITCase(mode: StateBackendMode) extends StreamingWithStateTestBase(mo
     val sink = new TestingRetractTableSink().configure(
       Array("a", "b", "v"),
       Array(Types.INT, Types.LONG, Types.STRING))
-    tEnv.registerTableSink("MySink", sink)
+    TableEnvUtil.registerTableSink(tEnv, "MySink", sink)
     execInsertTableAndWaitResult(result, "MySink")
 
     val expected = List("1,11,10", "1,11,11", "2,22,20", "3,33,30", "3,33,31")

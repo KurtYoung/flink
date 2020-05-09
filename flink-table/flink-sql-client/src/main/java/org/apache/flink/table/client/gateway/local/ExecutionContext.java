@@ -39,6 +39,7 @@ import org.apache.flink.table.api.TableConfig;
 import org.apache.flink.table.api.TableEnvironment;
 import org.apache.flink.table.api.TableException;
 import org.apache.flink.table.api.ValidationException;
+import org.apache.flink.table.api.internal.BatchTableEnvImpl;
 import org.apache.flink.table.api.java.BatchTableEnvironment;
 import org.apache.flink.table.api.java.StreamTableEnvironment;
 import org.apache.flink.table.api.java.internal.BatchTableEnvironmentImpl;
@@ -84,6 +85,7 @@ import org.apache.flink.table.module.Module;
 import org.apache.flink.table.module.ModuleManager;
 import org.apache.flink.table.sinks.TableSink;
 import org.apache.flink.table.sources.TableSource;
+import org.apache.flink.table.utils.TableEnvUtils;
 import org.apache.flink.util.FlinkException;
 import org.apache.flink.util.TemporaryClassLoaderContext;
 
@@ -580,10 +582,12 @@ public class ExecutionContext<ClusterID> {
 				tableSinks.put(name, createTableSink(name, entry.asMap()));
 			}
 		});
+
+		boolean isBatch = tableEnv instanceof BatchTableEnvImpl;
 		// register table sources
-		tableSources.forEach(tableEnv::registerTableSource);
+		tableSources.forEach((name, source) -> TableEnvUtils.registerTableSource(tableEnv, name, source, isBatch));
 		// register table sinks
-		tableSinks.forEach(tableEnv::registerTableSink);
+		tableSinks.forEach((name, sink) -> TableEnvUtils.registerTableSink(tableEnv, name, sink, isBatch));
 
 		//--------------------------------------------------------------------------------------------------------------
 		// Step.4 Register temporal tables.

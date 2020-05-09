@@ -52,7 +52,7 @@ import org.apache.flink.table.planner.plan.nodes.exec.ExecNode
 import org.apache.flink.table.planner.plan.optimize.program._
 import org.apache.flink.table.planner.plan.stats.FlinkStatistic
 import org.apache.flink.table.planner.plan.utils.{ExecNodePlanDumper, FlinkRelOptUtil}
-import org.apache.flink.table.planner.runtime.utils.{TestingAppendTableSink, TestingRetractTableSink, TestingUpsertTableSink}
+import org.apache.flink.table.planner.runtime.utils.{TableEnvUtil, TestingAppendTableSink, TestingRetractTableSink, TestingUpsertTableSink}
 import org.apache.flink.table.planner.sinks.CollectRowTableSink
 import org.apache.flink.table.runtime.types.TypeInfoLogicalTypeConverter.fromLogicalTypeToTypeInfo
 import org.apache.flink.table.sinks._
@@ -242,7 +242,7 @@ abstract class TableTestUtilBase(test: TableTestBase, isStreamingMode: Boolean) 
   def addTableSource(
       name: String,
       tableSource: TableSource[_]): Table = {
-    getTableEnv.registerTableSource(name, tableSource)
+    TableEnvUtil.registerTableSource(getTableEnv, name, tableSource)
     getTableEnv.from(name)
   }
 
@@ -333,7 +333,7 @@ abstract class TableTestUtilBase(test: TableTestBase, isStreamingMode: Boolean) 
       targetPath: String,
       extraDetails: ExplainDetail*): Unit = {
     val stmtSet = getTableEnv.createStatementSet()
-    getTableEnv.registerTableSink(targetPath, sink)
+    TableEnvUtil.registerTableSink(getTableEnv, targetPath, sink)
     stmtSet.addInsert(targetPath, table)
     verifyExplain(stmtSet, extraDetails: _*)
   }
@@ -591,7 +591,7 @@ abstract class TableTestUtil(
       targetPath: String,
       extraDetails: ExplainDetail*): Unit = {
     val stmtSet = tableEnv.createStatementSet()
-    tableEnv.registerTableSink(targetPath, sink)
+    TableEnvUtil.registerTableSink(tableEnv, targetPath, sink)
     stmtSet.addInsert(targetPath, table)
     verifyPlan(stmtSet, extraDetails: _*)
   }

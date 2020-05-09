@@ -24,10 +24,9 @@ import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
 import org.apache.flink.table.api.scala._
 import org.apache.flink.table.api.{EnvironmentSettings, Table, Types}
 import org.apache.flink.table.runtime.utils.CommonTestData
-import org.apache.flink.table.utils.MemoryTableSourceSinkUtil
+import org.apache.flink.table.utils.{MemoryTableSourceSinkUtil, TableEnvUtil}
 import org.apache.flink.table.utils.TableTestUtil.{readFromResource, replaceStageId, streamTableNode}
 import org.apache.flink.test.util.AbstractTestBase
-
 import org.junit.Assert.assertEquals
 import org.junit._
 
@@ -72,12 +71,12 @@ class ExplainTest extends AbstractTestBase {
     val settings = EnvironmentSettings.newInstance().useOldPlanner().build()
     val tEnv = StreamTableEnvironment.create(env, settings)
 
-    tEnv.registerTableSource("sourceTable", CommonTestData.getCsvTableSource)
+    TableEnvUtil.registerTableSource(tEnv, "sourceTable", CommonTestData.getCsvTableSource)
 
     val fieldNames = Array("d", "e")
     val fieldTypes: Array[TypeInformation[_]] = Array(Types.STRING(), Types.INT())
     val sink = new MemoryTableSourceSinkUtil.UnsafeMemoryAppendTableSink
-    tEnv.registerTableSink("targetTable", sink.configure(fieldNames, fieldTypes))
+    TableEnvUtil.registerTableSink(tEnv, "targetTable", sink.configure(fieldNames, fieldTypes))
 
     tEnv.sqlUpdate("INSERT INTO targetTable SELECT first, id FROM sourceTable")
 
@@ -92,13 +91,13 @@ class ExplainTest extends AbstractTestBase {
     val settings = EnvironmentSettings.newInstance().useOldPlanner().build()
     val tEnv = StreamTableEnvironment.create(env, settings)
 
-    tEnv.registerTableSource("sourceTable", CommonTestData.getCsvTableSource)
+    TableEnvUtil.registerTableSource(tEnv, "sourceTable", CommonTestData.getCsvTableSource)
 
     val fieldNames = Array("d", "e")
     val fieldTypes: Array[TypeInformation[_]] = Array(Types.STRING(), Types.INT())
     val sink = new MemoryTableSourceSinkUtil.UnsafeMemoryAppendTableSink
-    tEnv.registerTableSink("targetTable1", sink.configure(fieldNames, fieldTypes))
-    tEnv.registerTableSink("targetTable2", sink.configure(fieldNames, fieldTypes))
+    TableEnvUtil.registerTableSink(tEnv, "targetTable1", sink.configure(fieldNames, fieldTypes))
+    TableEnvUtil.registerTableSink(tEnv, "targetTable2", sink.configure(fieldNames, fieldTypes))
 
     tEnv.sqlUpdate("INSERT INTO targetTable1 SELECT first, id FROM sourceTable")
     tEnv.sqlUpdate("INSERT INTO targetTable2 SELECT last, id FROM sourceTable")

@@ -38,7 +38,7 @@ import java.util.List;
  * By then, these methods can be moved into TableEnvironmentImpl.
  */
 @Internal
-interface TableEnvironmentInternal extends TableEnvironment {
+public interface TableEnvironmentInternal extends TableEnvironment {
 
 	/**
 	 * Return a {@link Parser} that provides methods for parsing a SQL string.

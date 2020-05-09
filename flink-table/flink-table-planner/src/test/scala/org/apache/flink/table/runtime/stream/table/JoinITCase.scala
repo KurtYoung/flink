@@ -27,8 +27,8 @@ import org.apache.flink.table.expressions.utils.Func20
 import org.apache.flink.table.functions.aggfunctions.CountAggFunction
 import org.apache.flink.table.runtime.utils.JavaUserDefinedAggFunctions.{CountDistinct, WeightedAvg}
 import org.apache.flink.table.runtime.utils.{StreamITCase, StreamTestData, StreamingWithStateTestBase}
+import org.apache.flink.table.utils.TableEnvUtil
 import org.apache.flink.types.Row
-
 import org.junit.Assert._
 import org.junit.{Before, Test}
 
@@ -83,7 +83,8 @@ class JoinITCase extends StreamingWithStateTestBase {
     val leftTable = env.fromCollection(data1).toTable(tEnv, 'a, 'b)
     val rightTable = env.fromCollection(data2).toTable(tEnv, 'bb, 'c)
 
-    tEnv.registerTableSink(
+    TableEnvUtil.registerTableSink(
+      tEnv,
       "upsertSink",
       new TestUpsertSink(Array("a,b"), false).configure(
         Array[String]("a", "b", "c"),
@@ -142,7 +143,8 @@ class JoinITCase extends StreamingWithStateTestBase {
     val leftTable = env.fromCollection(data1).toTable(tEnv, 'a, 'b)
     val rightTable = env.fromCollection(data2).toTable(tEnv, 'bb, 'c, 'd)
 
-    tEnv.registerTableSink(
+    TableEnvUtil.registerTableSink(
+      tEnv,
       "retractSink",
       new TestRetractSink().configure(
         Array[String]("a", "b", "c", "d"),

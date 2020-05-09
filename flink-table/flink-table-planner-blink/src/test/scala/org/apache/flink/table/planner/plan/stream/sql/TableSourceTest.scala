@@ -22,6 +22,7 @@ import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.java.typeutils.RowTypeInfo
 import org.apache.flink.table.api.{DataTypes, TableSchema, Types}
 import org.apache.flink.table.planner.expressions.utils.Func1
+import org.apache.flink.table.planner.runtime.utils.TableEnvUtil
 import org.apache.flink.table.planner.utils._
 import org.apache.flink.types.Row
 import org.junit.{Before, Test}
@@ -66,7 +67,8 @@ class TableSourceTest extends TableTestBase {
         .asInstanceOf[Array[TypeInformation[_]]],
       Array("id", "rowtime", "val", "name"))
 
-    util.tableEnv.registerTableSource(
+    TableEnvUtil.registerTableSource(
+      util.tableEnv,
       "rowTimeT",
       new TestTableSourceWithTime[Row](false, tableSchema, returnType, Seq(), rowtime = "rowtime"))
 
@@ -83,7 +85,8 @@ class TableSourceTest extends TableTestBase {
         .asInstanceOf[Array[TypeInformation[_]]],
       Array("id", "rowtime", "val", "name"))
 
-    util.tableEnv.registerTableSource(
+    TableEnvUtil.registerTableSource(
+      util.tableEnv,
       "rowTimeT",
       new TestTableSourceWithTime[Row](false, tableSchema, returnType, Seq(), rowtime = "rowtime"))
 
@@ -100,7 +103,8 @@ class TableSourceTest extends TableTestBase {
         .asInstanceOf[Array[TypeInformation[_]]],
       Array("id", "rowtime", "val", "name"))
 
-    util.tableEnv.registerTableSource(
+    TableEnvUtil.registerTableSource(
+      util.tableEnv,
       "rowTimeT",
       new TestTableSourceWithTime[Row](false, tableSchema, returnType, Seq(), rowtime = "rowtime"))
 
@@ -125,7 +129,8 @@ class TableSourceTest extends TableTestBase {
       Array(Types.INT, Types.LONG, Types.STRING).asInstanceOf[Array[TypeInformation[_]]],
       Array("id", "val", "name"))
 
-    util.tableEnv.registerTableSource(
+    TableEnvUtil.registerTableSource(
+      util.tableEnv,
       "procTimeT",
       new TestTableSourceWithTime[Row](false, tableSchema, returnType, Seq(), proctime = "pTime"))
 
@@ -142,7 +147,8 @@ class TableSourceTest extends TableTestBase {
         .asInstanceOf[Array[TypeInformation[_]]],
       Array("id", "name", "val", "rtime"))
 
-    util.tableEnv.registerTableSource(
+    TableEnvUtil.registerTableSource(
+      util.tableEnv,
       "T",
       new TestProjectableTableSource(false, tableSchema, returnType, Seq(), "rtime", "ptime"))
 
@@ -159,7 +165,8 @@ class TableSourceTest extends TableTestBase {
         .asInstanceOf[Array[TypeInformation[_]]],
       Array("id", "name", "val", "rtime"))
 
-    util.tableEnv.registerTableSource(
+    TableEnvUtil.registerTableSource(
+      util.tableEnv,
       "T",
       new TestProjectableTableSource(false, tableSchema, returnType, Seq(), "rtime", "ptime"))
 
@@ -176,7 +183,8 @@ class TableSourceTest extends TableTestBase {
       Array("id", "rtime", "val", "name"))
 
     val util = streamTestUtil()
-    util.tableEnv.registerTableSource(
+    TableEnvUtil.registerTableSource(
+      util.tableEnv,
       "T",
       new TestProjectableTableSource(false, tableSchema, returnType, Seq(), "rtime", "ptime"))
 
@@ -192,7 +200,8 @@ class TableSourceTest extends TableTestBase {
         .asInstanceOf[Array[TypeInformation[_]]],
       Array("id", "rtime", "val", "name"))
 
-    util.tableEnv.registerTableSource(
+    TableEnvUtil.registerTableSource(
+      util.tableEnv,
       "T",
       new TestProjectableTableSource(false, tableSchema, returnType, Seq(), "rtime", "ptime"))
 
@@ -208,7 +217,8 @@ class TableSourceTest extends TableTestBase {
         .asInstanceOf[Array[TypeInformation[_]]],
       Array("id", "rtime", "val", "name"))
 
-    util.tableEnv.registerTableSource(
+    TableEnvUtil.registerTableSource(
+      util.tableEnv,
       "T",
       new TestProjectableTableSource(false, tableSchema, returnType, Seq(), "rtime", "ptime"))
 
@@ -226,7 +236,8 @@ class TableSourceTest extends TableTestBase {
       Array("p-rtime", "p-id", "p-name", "p-val"))
     val mapping = Map("rtime" -> "p-rtime", "id" -> "p-id", "val" -> "p-val", "name" -> "p-name")
 
-    util.tableEnv.registerTableSource(
+    TableEnvUtil.registerTableSource(
+      util.tableEnv,
       "T",
       new TestProjectableTableSource(
         false, tableSchema, returnType, Seq(), "rtime", "ptime", mapping))
@@ -259,7 +270,8 @@ class TableSourceTest extends TableTestBase {
       Array(Types.INT, deepNested, nested1, Types.STRING).asInstanceOf[Array[TypeInformation[_]]],
       Array("id", "deepNested", "nested", "name"))
 
-    util.tableEnv.registerTableSource(
+    TableEnvUtil.registerTableSource(
+      util.tableEnv,
       "T",
       new TestNestedProjectableTableSource(false, tableSchema, returnType, Seq()))
 
@@ -282,7 +294,8 @@ class TableSourceTest extends TableTestBase {
       Array(Types.INT, Types.STRING).asInstanceOf[Array[TypeInformation[_]]],
       Array("id", "name"))
 
-    util.tableEnv.registerTableSource(
+    TableEnvUtil.registerTableSource(
+      util.tableEnv,
       "T",
       new TestProjectableTableSource(false, tableSchema, returnType, Seq(), null, null))
 

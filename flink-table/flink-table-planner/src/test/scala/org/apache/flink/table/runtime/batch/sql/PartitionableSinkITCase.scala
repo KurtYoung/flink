@@ -38,9 +38,9 @@ import org.apache.flink.table.runtime.batch.sql.PartitionableSinkITCase._
 import org.apache.flink.table.sinks.{BatchTableSink, PartitionableTableSink, TableSink}
 import org.apache.flink.table.sources.BatchTableSource
 import org.apache.flink.table.types.logical.{BigIntType, IntType, VarCharType}
+import org.apache.flink.table.utils.TableEnvUtil
 import org.apache.flink.test.util.AbstractTestBase
 import org.apache.flink.types.Row
-
 import org.junit.Assert.assertEquals
 import org.junit.rules.ExpectedException
 import org.junit.{Before, Rule, Test}
@@ -75,7 +75,7 @@ class PartitionableSinkITCase extends AbstractTestBase {
       .field("b", DataTypes.BIGINT())
       .field("c", DataTypes.STRING())
       .build()
-    tEnv.registerTableSource(name, new CollectionTableSource(data, 100, tableSchema))
+    TableEnvUtil.registerTableSource(tEnv, name, new CollectionTableSource(data, 100, tableSchema))
   }
 
   @Test
@@ -121,7 +121,7 @@ class PartitionableSinkITCase extends AbstractTestBase {
       rowType: RowTypeInfo = type3,
       partitionColumns: Array[String] = Array[String]("a")): TestSink = {
     val testSink = new TestSink(rowType, partitionColumns)
-    tEnv.registerTableSink(tableName, testSink)
+    TableEnvUtil.registerTableSink(tEnv, tableName, testSink)
     testSink
   }
 
