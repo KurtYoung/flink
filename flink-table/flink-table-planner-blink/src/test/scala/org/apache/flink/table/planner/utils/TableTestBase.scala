@@ -541,8 +541,8 @@ abstract class TableTestUtil(
       name: String,
       tableSource: TableSource[_],
       statistic: FlinkStatistic): Table = {
-    // TODO RichTableSourceQueryOperation should be deleted and use registerTableSourceInternal method
-    //  instead of registerTable method here after unique key in TableSchema is ready
+    // TODO RichTableSourceQueryOperation should be deleted and use registerTableSourceInternal
+    //  method instead of registerTable method here after unique key in TableSchema is ready
     //  and setting catalog statistic to TableSourceTable in DatabaseCalciteSchema is ready
     val identifier = ObjectIdentifier.of(
       testingTableEnv.getCurrentCatalog,
