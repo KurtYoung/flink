@@ -654,7 +654,7 @@ public interface StreamTableEnvironment extends TableEnvironment {
 	 */
 	@Override
 	@Deprecated
-	StreamTableDescriptor connect(ConnectorDescriptor connectorDescriptor);
+	StreamTableDescriptor connect(ConnectorDescriptor  connectorDescriptor);
 
 	/**
 	 * Triggers the program execution. The environment will execute all parts of
